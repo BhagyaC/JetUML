@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -37,10 +37,10 @@ import org.jetuml.diagram.edges.AssociationEdge.Directionality;
 import org.jetuml.diagram.edges.DependencyEdge;
 import org.jetuml.diagram.edges.GeneralizationEdge;
 import org.jetuml.diagram.nodes.ClassNode;
-import org.jetuml.geom.EdgePath;
 import org.jetuml.geom.Point;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.ClassDiagramRenderer;
+import org.jetuml.rendering.EdgePath;
 import org.jetuml.rendering.LineStyle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -217,8 +217,8 @@ public class TestStoredEdgeViewer
 		aDependencyEdge.connect(aNodeB, aNodeA);
 		aDiagram.addEdge(aDependencyEdge);
 		store(aDependencyEdge, new EdgePath(new Point(0, 0), new Point(0, 100)));
-		assertEquals(new Point(0, 0), aStoredEdgeViewer.getConnectionPoints(aDependencyEdge).getPoint1());
-		assertEquals(new Point(0, 100), aStoredEdgeViewer.getConnectionPoints(aDependencyEdge).getPoint2());
+		assertEquals(new Point(0, 0), aStoredEdgeViewer.getConnectionPoints(aDependencyEdge).point1());
+		assertEquals(new Point(0, 100), aStoredEdgeViewer.getConnectionPoints(aDependencyEdge).point2());
 	}
 	
 	@Test
@@ -356,5 +356,16 @@ public class TestStoredEdgeViewer
 		{
 			fail();
 		}
+	}
+	
+	@Test
+	void testWrapString()
+	{
+		assertEquals("Display String", AbstractEdgeRenderer.wrapString("Display String", 15));
+		assertEquals("A really long\nstring that\nshould probably\nbe wrapped", 
+				AbstractEdgeRenderer.wrapString("A really long string that should probably be wrapped", 15));
+		assertEquals("Display\nString", AbstractEdgeRenderer.wrapString("Display String", 1));
+		assertEquals("A\nreally\nlong\nstring\nthat\nshould\nprobably\nbe\nwrapped", 
+				AbstractEdgeRenderer.wrapString("A really long string that should probably be wrapped", 1));
 	}
 }

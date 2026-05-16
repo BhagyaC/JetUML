@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -21,14 +21,12 @@
 package org.jetuml.gui;
 
 import static org.jetuml.application.ApplicationResources.RESOURCES;
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -39,60 +37,55 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
- * A modal dialog that allows users to change font
- * size of diagrams.
+ * A modal dialog that allows users to change the duration (in seconds) that
+ * notifications remain visible.
  */
-public class FontSizeDialog 
+public class NotificationTimeDialog 
 {
 	private static final int SPACING = 10;
 	private static final int VSPACE = 20;
-	private static final int MIN_SIZE = 8;
-	private static final int MAX_SIZE = 24;
-	
-	private final Stage aStage = new Stage();
-	private final TextField aSizeField = new TextField();
+	private static final int MIN_DURATION = 0;
+	private static final int MAX_DURATION = 10;
+	private final Stage aStage;
+	private final TextField aDurationField = new TextField();
 	
 	/**
-	 * Creates a new font dialog.
+	 * Creates a new dialog.
 	 * 
-	 * @param pOwner The stage that owns this stage.
+	 * @param pDialogStage The stage that owns this dialog.
 	 */
-	public FontSizeDialog( Stage pOwner )
+	public NotificationTimeDialog( Stage pDialogStage )
 	{
-		prepareStage(pOwner);
-		aStage.setScene(createScene());
+		aStage = pDialogStage;
+		prepareStage();
+		aStage.getScene().setRoot(createRoot());
 	}
 	
-	private void prepareStage(Stage pOwner) 
+	private void prepareStage() 
 	{
-		aStage.setResizable(false);
-		aStage.initModality(Modality.WINDOW_MODAL);
-		aStage.initOwner(pOwner);
-		aStage.setTitle(RESOURCES.getString("dialog.font_size.title"));
+		aStage.setTitle(RESOURCES.getString("dialog.notifications.title"));
 		aStage.getIcons().add(new Image(RESOURCES.getString("application.icon")));
 	}
 	
-	private Scene createScene() 
+	private Pane createRoot() 
 	{
 		BorderPane layout = new BorderPane();
 		layout.setPadding( new Insets(SPACING));
 		
-		String message = RESOURCES.getString("dialog.font_size.message");
-		message = message.replace("#1", Integer.toString(MIN_SIZE));
-		message = message.replace("#2", Integer.toString(MAX_SIZE));
+		String message = RESOURCES.getString("dialog.notifications.message");
+		message = message.replace("#1", Integer.toString(MIN_DURATION));
+		message = message.replace("#2", Integer.toString(MAX_DURATION));
 
-		HBox top = new HBox(new Text(message));
+		HBox top = new HBox(new Label(message));
 		top.setAlignment(Pos.CENTER);
 		layout.setTop(top);
 		layout.setCenter(createForm());
 		layout.setBottom(createButtons());
 		
-		return new Scene(layout);
+		return layout;
 	}
 	
 	private Pane createForm()
@@ -102,20 +95,19 @@ public class FontSizeDialog
 		pane.setPadding(new Insets(SPACING));
 		pane.setSpacing(SPACING);
 				
-		aSizeField.setPrefColumnCount((int)Math.log10(MAX_SIZE)+1);
-		aSizeField.setText(Integer.toString(getFontSize()));
-		HBox size = new HBox(new Label(RESOURCES.getString("dialog.font_size.size")), aSizeField);
+		aDurationField.setPrefColumnCount((int)Math.log10(MAX_DURATION)+1);
+		aDurationField.setText(durationAsString());
+		HBox size = new HBox(new Label(RESOURCES.getString("dialog.notifications.value")), aDurationField);
 		size.setAlignment(Pos.CENTER);
 		size.setSpacing(2);
-		aSizeField.setOnAction(event -> onInput());
+		aDurationField.setOnAction(event -> onInput());
 		
-		Button defaultButton = new Button(RESOURCES.getString("dialog.font_size.default"));
+		Button defaultButton = new Button(RESOURCES.getString("dialog.notifications.default"));
 		defaultButton.setOnAction( pEvent -> 
 		{
-			aSizeField.setText(Integer.toString(DEFAULT_FONT_SIZE));
+			aDurationField.setText(UserPreferences.IntegerPreference.notificationDuration.getDefault());
 		});
-		
-		
+				
 		pane.getChildren().addAll(size, defaultButton);
 				
 		return pane;
@@ -126,7 +118,7 @@ public class FontSizeDialog
 		try
 		{
 			int parsedSize = Integer.parseInt(pSize);
-			return MIN_SIZE <= parsedSize && parsedSize <= MAX_SIZE;
+			return MIN_DURATION <= parsedSize && parsedSize <= MAX_DURATION;
 		}
 		catch ( NumberFormatException exception )
 		{
@@ -134,27 +126,28 @@ public class FontSizeDialog
 		}
 	}
 
-	private static int getFontSize()
+	private static String durationAsString()
 	{
-		return UserPreferences.instance().getInteger(IntegerPreference.fontSize);
+		return Integer.toString(UserPreferences.instance().
+				getInteger(IntegerPreference.notificationDuration));
 	}
 	
-	private void showInvalidSizeAlert()
+	private void showInvalidDurationAlert()
 	{
-		String content = RESOURCES.getString("dialog.font_size.error_content");
-		content = content.replace("#1", Integer.toString(MIN_SIZE));
-		content = content.replace("#2", Integer.toString(MAX_SIZE));
+		String content = RESOURCES.getString("dialog.notifications.error_content");
+		content = content.replace("#1", Integer.toString(MIN_DURATION));
+		content = content.replace("#2", Integer.toString(MAX_DURATION));
 		Alert alert = new Alert(AlertType.ERROR, content, ButtonType.OK);
 		alert.setTitle(RESOURCES.getString("alert.error.title"));
-		alert.setHeaderText(RESOURCES.getString("dialog.font_size.error_header"));
+		alert.setHeaderText(RESOURCES.getString("dialog.notifications.error_header"));
 		alert.initOwner(aStage);
 		alert.showAndWait();
 	}
 	
 	private Pane createButtons()
 	{
-		Button ok = new Button(RESOURCES.getString("dialog.font_size.ok"));
-		Button cancel = new Button(RESOURCES.getString("dialog.font_size.cancel"));
+		Button ok = new Button(RESOURCES.getString("dialog.notifications.ok"));
+		Button cancel = new Button(RESOURCES.getString("dialog.notifications.cancel"));
 		ok.setOnAction(event -> onInput());
 		cancel.setOnAction( pEvent -> aStage.close() );
 
@@ -167,15 +160,15 @@ public class FontSizeDialog
 	
 	private void onInput()
 	{
-		if( isValid(aSizeField.getText()) )
+		if( isValid(aDurationField.getText()) )
 		{
-			UserPreferences.instance().setInteger(IntegerPreference.fontSize, Integer.parseInt(aSizeField.getText()));
+			UserPreferences.instance().setInteger(IntegerPreference.notificationDuration, Integer.parseInt(aDurationField.getText()));
 			aStage.close();
 		}
 		else
 		{
-			aSizeField.setText(Integer.toString(getFontSize()));
-			showInvalidSizeAlert();
+			aDurationField.setText(durationAsString());
+			showInvalidDurationAlert();
 		}
 	}
 	

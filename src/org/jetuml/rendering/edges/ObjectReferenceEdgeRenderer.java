@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -27,10 +27,12 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.RenderingContext;
+import org.jetuml.rendering.GraphicsRenderingContext;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -70,18 +72,18 @@ public final class ObjectReferenceEdgeRenderer extends AbstractEdgeRenderer
 	
 	private static Path getSShape(Line pConnectionPoints)
 	{
-		final int x1 = pConnectionPoints.getX1() + ENDSIZE;
-		final int y1 = pConnectionPoints.getY1();
-		final int x2 = pConnectionPoints.getX2() - ENDSIZE;
-		final int y2 = pConnectionPoints.getY2();
-		final int xmid = (pConnectionPoints.getX1() + pConnectionPoints.getX2()) / 2;
-		final int ymid = (pConnectionPoints.getY1() + pConnectionPoints.getY2()) / 2;
+		final int x1 = pConnectionPoints.x1() + ENDSIZE;
+		final int y1 = pConnectionPoints.y1();
+		final int x2 = pConnectionPoints.x2() - ENDSIZE;
+		final int y2 = pConnectionPoints.y2();
+		final int xmid = (pConnectionPoints.x1() + pConnectionPoints.x2()) / 2;
+		final int ymid = (pConnectionPoints.y1() + pConnectionPoints.y2()) / 2;
      
-		MoveTo moveTo = new MoveTo(pConnectionPoints.getX1(), y1);
+		MoveTo moveTo = new MoveTo(pConnectionPoints.x1(), y1);
 		LineTo lineTo1 = new LineTo(x1, y1);
 		QuadCurveTo quadTo1 = new QuadCurveTo((x1 + xmid) / 2, y1, xmid, ymid);
 		QuadCurveTo quadTo2 = new QuadCurveTo((x2 + xmid) / 2, y2, x2, y2);
-		LineTo lineTo2 = new LineTo(pConnectionPoints.getX2(), y2);
+		LineTo lineTo2 = new LineTo(pConnectionPoints.x2(), y2);
 		
 		Path path = new Path();
 		path.getElements().addAll(moveTo, lineTo1, quadTo1, quadTo2, lineTo2);
@@ -90,17 +92,17 @@ public final class ObjectReferenceEdgeRenderer extends AbstractEdgeRenderer
 	
 	private static Path getCShape(Line pConnectionPoints)
 	{
-		final int x1 = Math.max(pConnectionPoints.getX1(), pConnectionPoints.getX2()) + ENDSIZE;
-		final int y1 = pConnectionPoints.getY1();
+		final int x1 = Math.max(pConnectionPoints.x1(), pConnectionPoints.x2()) + ENDSIZE;
+		final int y1 = pConnectionPoints.y1();
 		final int x2 = x1 + ENDSIZE;
-		final int y2 = pConnectionPoints.getY2();
-		final int ymid = (pConnectionPoints.getY1() + pConnectionPoints.getY2()) / 2;
+		final int y2 = pConnectionPoints.y2();
+		final int ymid = (pConnectionPoints.y1() + pConnectionPoints.y2()) / 2;
 		
-		MoveTo moveTo = new MoveTo(pConnectionPoints.getX1(), y1);
+		MoveTo moveTo = new MoveTo(pConnectionPoints.x1(), y1);
 		LineTo lineTo1 = new LineTo(x1, y1);
 		QuadCurveTo quadTo1 = new QuadCurveTo(x2, y1, x2, ymid);
 		QuadCurveTo quadTo2 = new QuadCurveTo(x2, y2, x1, y2);
-		LineTo lineTo2 = new LineTo(pConnectionPoints.getX2(), y2);
+		LineTo lineTo2 = new LineTo(pConnectionPoints.x2(), y2);
 		
 		Path path = new Path();
 		path.getElements().addAll(moveTo, lineTo1, quadTo1, quadTo2, lineTo2);
@@ -115,27 +117,27 @@ public final class ObjectReferenceEdgeRenderer extends AbstractEdgeRenderer
 	{
 		Rectangle b = parent().getBounds(pEdge.end());
 		Point p = parent().getConnectionPoints(pEdge.start(), Direction.EAST);
-		return b.getX() >= p.getX() + 2 * ENDSIZE;
+		return b.x() >= p.x() + 2 * ENDSIZE;
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Edge edge = (Edge) pElement;
-		ToolGraphics.strokeSharpPath(pGraphics, (Path) getShape(edge), LineStyle.SOLID);
+		pContext.strokePath((Path) getShape(edge), ColorScheme.get().stroke(), LineStyle.SOLID);
 		Line connectionPoints = getConnectionPoints(edge);
 		
 		if(isSShaped(edge))
 		{
-			ArrowHeadRenderer.draw(pGraphics, ArrowHead.BLACK_TRIANGLE,
-					new Point(connectionPoints.getX2() - ENDSIZE, connectionPoints.getY2()), 
-					new Point(connectionPoints.getX2(), connectionPoints.getY2()));      
+			ArrowHeadRenderer.draw(pContext, ArrowHead.BLACK_TRIANGLE,
+					new Point(connectionPoints.x2() - ENDSIZE, connectionPoints.y2()), 
+					new Point(connectionPoints.x2(), connectionPoints.y2()));      
 		}
 		else
 		{
-			ArrowHeadRenderer.draw(pGraphics, ArrowHead.BLACK_TRIANGLE,
-					new Point(connectionPoints.getX2() + ENDSIZE, connectionPoints.getY2()), 
-					new Point(connectionPoints.getX2(), connectionPoints.getY2()));      
+			ArrowHeadRenderer.draw(pContext, ArrowHead.BLACK_TRIANGLE,
+					new Point(connectionPoints.x2() + ENDSIZE, connectionPoints.y2()), 
+					new Point(connectionPoints.x2(), connectionPoints.y2()));      
 		}
 	}
 
@@ -143,7 +145,7 @@ public final class ObjectReferenceEdgeRenderer extends AbstractEdgeRenderer
 	public Line getConnectionPoints(Edge pEdge)
 	{
 		Point point = parent().getConnectionPoints(pEdge.start(), Direction.EAST);
-		if (isSShaped(pEdge))
+		if(isSShaped(pEdge))
 		{
 			return new Line(point, parent().getConnectionPoints(pEdge.end(), Direction.WEST));
 		}
@@ -160,8 +162,9 @@ public final class ObjectReferenceEdgeRenderer extends AbstractEdgeRenderer
 		GraphicsContext graphics = canvas.getGraphicsContext2D();
 		graphics.scale(0.6, 0.6);
 		Path path = getCShape(new Line(new Point(5, 5), new Point(15,25)));
-		ToolGraphics.strokeSharpPath(graphics, path, LineStyle.SOLID);
-		ArrowHeadRenderer.draw(graphics, ArrowHead.BLACK_TRIANGLE, new Point(20,25), new Point(15, 25));
+		GraphicsRenderingContext context = new GraphicsRenderingContext(graphics);
+		context.strokePath(path, ColorScheme.get().stroke(), LineStyle.SOLID);
+		ArrowHeadRenderer.draw(context, ArrowHead.BLACK_TRIANGLE, new Point(20,25), new Point(15, 25));
 		return canvas;
 	}
 }

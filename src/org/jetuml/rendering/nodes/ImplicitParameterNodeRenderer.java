@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -22,6 +22,8 @@ package org.jetuml.rendering.nodes;
 
 import static org.jetuml.geom.GeomUtils.max;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.Node;
@@ -30,13 +32,15 @@ import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Direction;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.SequenceDiagramRenderer;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
+import org.jetuml.rendering.StringRenderer.Decoration;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -57,8 +61,8 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 	private static final int DEFAULT_HEIGHT = 120;
 	private static final int HORIZONTAL_PADDING = 10; // 2x the left and right padding around the name of the implicit parameter
 	private static final int TAIL_HEIGHT = 20; // Piece of the life line below the last call node
-	private static final StringRenderer NAME_VIEWER = 
-			StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED, TextDecoration.UNDERLINED);
+	private static final StringRenderer LABEL_RENDERER = 
+			new StringRenderer(Alignment.CENTER, Decoration.UNDERLINED);
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -75,20 +79,24 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Rectangle top = getTopRectangle((Node)pElement);
-		RenderingUtils.drawRectangle(pGraphics, top);
-		NAME_VIEWER.draw(((ImplicitParameterNode)pElement).getName(), pGraphics, top);
-		int xmid = top.getCenter().getX();
-		RenderingUtils.drawLine(pGraphics, xmid,  top.getMaxY(), xmid, getBounds(pElement).getMaxY(), LineStyle.DOTTED);
+		pContext.drawRectangle(top, ColorScheme.get().fill(), 
+				ColorScheme.get().stroke(), Optional.of(ColorScheme.get().dropShadow()));
+		LABEL_RENDERER.draw(((ImplicitParameterNode)pElement).getName(), 
+				top.centerSlice(LABEL_RENDERER.getDimension("|").height()), pContext);
+		int xmid = top.center().x();
+		pContext.strokeLine(xmid,  top.maxY(), xmid, getBounds(pElement).maxY(), 
+				ColorScheme.get().stroke(),
+				LineStyle.DOTTED);
 	}
 	
 	@Override
 	public boolean contains(DiagramElement pElement, Point pPoint)
 	{
 		final Rectangle bounds = getBounds(pElement);
-		return bounds.getX() <= pPoint.getX() && pPoint.getX() <= bounds.getX() + bounds.getWidth();
+		return bounds.x() <= pPoint.x() && pPoint.x() <= bounds.x() + bounds.width();
 	}
 
 	@Override
@@ -97,23 +105,23 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 		Rectangle bounds = getBounds(pNode);
 		if(pDirection == Direction.EAST)
 		{
-			return new Point(bounds.getMaxX(), bounds.getY() + TOP_HEIGHT / 2);
+			return new Point(bounds.maxX(), bounds.y() + TOP_HEIGHT / 2);
 		}
 		else
 		{
-			return new Point(bounds.getX(), bounds.getY() + TOP_HEIGHT / 2);
+			return new Point(bounds.x(), bounds.y() + TOP_HEIGHT / 2);
 		}
 	}
 	
 	/*
 	 * @return The width of the top rectangle.
 	 */
-	private int getWidth(DiagramElement pElement)
+	private static int getWidth(DiagramElement pElement)
 	{
 		assert pElement != null;
 		assert pElement instanceof ImplicitParameterNode;
-		return Math.max(NAME_VIEWER.getDimension(((ImplicitParameterNode)pElement).getName()).width()+ 
-				HORIZONTAL_PADDING, DEFAULT_WIDTH);
+		int labelWidth = LABEL_RENDERER.getDimension(((ImplicitParameterNode)pElement).getName()).width();
+		return Math.max(labelWidth + HORIZONTAL_PADDING, DEFAULT_WIDTH);
 	}
 	
 	private Point getMaxXYofChildren(Node pNode)
@@ -123,8 +131,8 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 		for( Node child : ((ImplicitParameterNode)pNode).getChildren() )
 		{
 			Rectangle bounds = parent().getBounds(child);
-			maxX = Math.max(maxX,  bounds.getMaxX());
-			maxY = Math.max(maxY, bounds.getMaxY());
+			maxX = Math.max(maxX,  bounds.maxX());
+			maxY = Math.max(maxY, bounds.maxY());
 		}
 		return new Point(maxX, maxY);
 	}
@@ -136,7 +144,7 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 	 */
 	public Rectangle getTopRectangle(Node pNode)
 	{
-		return new Rectangle(pNode.position().getX(), 				
+		return new Rectangle(pNode.position().x(), 				
 				((SequenceDiagramRenderer)parent()).getLifelineTop((ImplicitParameterNode) pNode) - TOP_HEIGHT,
 				getWidth(pNode), 									
 				TOP_HEIGHT);										
@@ -146,11 +154,11 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 	 * @return The x-coordinate of the center of pNode.
 	 * @pre pNode != null;
 	 */
-	public int getCenterXCoordinate(Node pNode)
+	public static int getCenterXCoordinate(Node pNode)
 	{
 		assert pNode != null;
-		return Math.max(NAME_VIEWER.getDimension(((ImplicitParameterNode)pNode).getName()).width()+ 
-				HORIZONTAL_PADDING, DEFAULT_WIDTH)/2 + pNode.position().getX();
+		return Math.max(LABEL_RENDERER.getDimension(((ImplicitParameterNode)pNode).getName()).width() + HORIZONTAL_PADDING, 
+				DEFAULT_WIDTH)/2 + pNode.position().x();
 	}
 
 	@Override
@@ -158,9 +166,9 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 	{
 		Rectangle topRectangle = getTopRectangle(pNode);
 		Point childrenMaxXY = getMaxXYofChildren(pNode);
-		int width = max(topRectangle.getWidth(), DEFAULT_WIDTH, childrenMaxXY.getX() - pNode.position().getX());
-		int height = max(DEFAULT_HEIGHT, childrenMaxXY.getY() + TAIL_HEIGHT) - topRectangle.getY();	
-		return new Rectangle(pNode.position().getX(), topRectangle.getY(), width, height);
+		int width = max(topRectangle.width(), DEFAULT_WIDTH, childrenMaxXY.x() - pNode.position().x());
+		int height = max(DEFAULT_HEIGHT, childrenMaxXY.y() + TAIL_HEIGHT) - topRectangle.y();	
+		return new Rectangle(pNode.position().x(), topRectangle.y(), width, height);
 	}
 	
 	@Override
@@ -178,9 +186,13 @@ public final class ImplicitParameterNodeRenderer extends AbstractNodeRenderer
 		graphics.setFill(Color.WHITE);
 		graphics.setStroke(Color.BLACK);
 		Rectangle top = new Rectangle(0, 0, DEFAULT_WIDTH, TOP_HEIGHT);
-		RenderingUtils.drawRectangle(canvas.getGraphicsContext2D(), top);
+		GraphicsRenderingContext context = new GraphicsRenderingContext(canvas.getGraphicsContext2D());
+		context.drawRectangle(top, ColorScheme.get().fill(), 
+				ColorScheme.get().stroke(), Optional.of(ColorScheme.get().dropShadow()));
 		int xmid = DEFAULT_WIDTH/2;
-		RenderingUtils.drawLine(canvas.getGraphicsContext2D(), xmid,  top.getMaxY(), xmid, height, LineStyle.DOTTED);
+		context.strokeLine(xmid,  top.maxY(), xmid, height, 
+				ColorScheme.get().stroke(),
+				LineStyle.DOTTED);
 		return canvas;
 	}
 }

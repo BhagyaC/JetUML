@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.gui;
 
 import java.util.ArrayList;
@@ -67,10 +66,10 @@ public final class MoveTracker
 		for(DiagramElement element : pElements)
 		{
 			assert element != null;
-			if(element instanceof Node)
+			if(element instanceof Node node)
 			{
-				aTrackedNodes.add((Node) element);
-				aOriginalBounds.add(aBoundsCalculator.apply((Node)element));
+				aTrackedNodes.add(node);
+				aOriginalBounds.add(aBoundsCalculator.apply(node));
 			}
 		}
 	}
@@ -94,8 +93,8 @@ public final class MoveTracker
 		}
 		for(i = 0; i < aOriginalBounds.size(); i++)
 		{
-			int dY = selectionBounds2[i].getY() - aOriginalBounds.get(i).getY();
-			int dX = selectionBounds2[i].getX() - aOriginalBounds.get(i).getX();
+			int dY = selectionBounds2[i].y() - aOriginalBounds.get(i).y();
+			int dX = selectionBounds2[i].x() - aOriginalBounds.get(i).x();
 			if(dX != 0 || dY != 0)
 			{
 				operation.add(DiagramBuilder.createMoveNodeOperation(aTrackedNodes.get(i), dX, dY));

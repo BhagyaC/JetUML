@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  * 
  * See: https://github.com/prmr/JetUML
  *
@@ -15,11 +15,9 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see
  * http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.geom;
 
 import static java.lang.Math.acos;
-import static java.lang.Math.round;
 import static java.lang.Math.toDegrees;
 
 import java.util.HashMap;
@@ -96,7 +94,7 @@ public final class Direction
 	{
 		assert pStart != null && pEnd != null;
 		assert !pStart.equals(pEnd);
-		return fromAngle(asAngle(pEnd.getX() - pStart.getX(), pEnd.getY() - pStart.getY()));
+		return fromAngle(asAngle(pEnd.x() - pStart.x(), pEnd.y() - pStart.y()));
 	}
 	
 	/**
@@ -127,7 +125,7 @@ public final class Direction
 	 * 
 	 * @param pStart The start direction (exclusive)
 	 * @param pEnd The end direction (exclusive)
-	 * @return True if this direction represents an angle between pStart (inclusive) and pEnd (exclusive).
+	 * @return True if this direction represents an angle between pStart (exclusive) and pEnd (exclusive).
 	 * @pre pStart != null && pEnd != null && pStart != pEnd.
 	 */
 	public boolean isBetween( Direction pStart, Direction pEnd)
@@ -215,7 +213,7 @@ public final class Direction
 		// Compute the angle. We use the arccos instead of the arcsin
 		// despite the fact that the height is the opposing side to shift
 		// the angle by 90 to align 0 with north.
-		long degrees = round(toDegrees(acos(normalizedHeight)));
+		int degrees = GeomUtils.round(toDegrees(acos(normalizedHeight)));
 		
 		// We negate the angle for the left half-plane
 		if( pWidth <= 0 )
@@ -224,7 +222,7 @@ public final class Direction
 		}
 		
 		// Position the angle in the [0, 359] range
-		return (int) (degrees + DEGREES_IN_CIRCLE) % DEGREES_IN_CIRCLE;
+		return (degrees + DEGREES_IN_CIRCLE) % DEGREES_IN_CIRCLE;
 	}
 
 	@Override

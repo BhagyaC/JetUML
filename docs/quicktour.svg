@@ -1,0 +1,47 @@
+<svg viewBox="173 53 445 209" width="445" xmlns="http://www.w3.org/2000/svg">
+<defs><filter id="shadow" x="-10%" y="-10%">
+  <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+</filter></defs><g transform="translate(0.5,0.5)" stroke-width="0.75">
+<rect width="108" height="75" x="332" y="182" stroke="none" fill="lightgray" style="filter:url(#shadow);"/>
+<rect width="108" height="75" x="330" y="180" stroke="black" fill="white"/>
+<text x="384" y="199" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="italic" text-anchor="middle">AbstractFigure</text>
+<line x1="330" y1="209" x2="438" y2="209" stroke="black"/>
+<text x="337" y="227" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">x: int</text>
+<text x="337" y="243" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">y: int</text>
+<rect width="100" height="73" x="332" y="62" stroke="none" fill="lightgray" style="filter:url(#shadow);"/>
+<rect width="100" height="73" x="330" y="60" stroke="black" fill="white"/>
+<text x="380" y="79" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">«interface»</text>
+<text x="380" y="95" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">Figure</text>
+<line x1="330" y1="104" x2="430" y2="104" stroke="black"/>
+<text x="337" y="122" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">draw():void</text>
+<rect width="100" height="60" x="192" y="192" stroke="none" fill="lightgray" style="filter:url(#shadow);"/>
+<rect width="100" height="60" x="190" y="190" stroke="black" fill="white"/>
+<text x="240" y="210" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">Rectangle</text>
+<line x1="190" y1="221" x2="290" y2="221" stroke="black"/>
+<text x="197" y="239" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">draw():void</text>
+<rect width="100" height="60" x="452" y="192" stroke="none" fill="lightgray" style="filter:url(#shadow);"/>
+<rect width="100" height="60" x="450" y="190" stroke="black" fill="white"/>
+<text x="500" y="225" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">Group</text>
+<path d="M 540 130 L 603 130 L 611 138 L 611 170 L 540 170 L 540 130" stroke="none" fill="lightGray"  transform="translate(2 2)" style="filter:url(#shadow);"/>
+<path d="M 540 130 L 603 130 L 611 138 L 611 170 L 540 170 L 540 130" stroke="black" fill="rgb(90%, 90%, 60%)"/>
+<path d="M 603 130 L 603 138 L 611 138 L 603 130" stroke="black" fill="white"/>
+<text x="543" y="146" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">Composite</text>
+<rect width="121" height="75" x="182" y="62" stroke="none" fill="lightgray" style="filter:url(#shadow);"/>
+<rect width="121" height="75" x="180" y="60" stroke="black" fill="white"/>
+<text x="240" y="80" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">«application»</text>
+<text x="240" y="96" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-style="normal" text-anchor="middle">DrawingEditor</text>
+<line x1="180" y1="106" x2="301" y2="106" stroke="black"/>
+<text x="187" y="124" font-size="11.75px" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-style="normal" text-anchor="start">main(String[]):void</text>
+<line x1="187" y1="126" x2="284" y2="126" stroke="black"/>
+<path d="M 301 100 L 330 100" stroke="black" fill="none" stroke-dasharray="3.0 3.0"/>
+<path d="M 330 100 L 321 95 M 321 105 L 330 100" stroke="black" fill="white"/>
+<path d="M 290 220 L 310 220 L 310 220 L 330 220" stroke="black" fill="none"/>
+<path d="M 330 220 L 321 215 L 321 225 L 330 220" stroke="black" fill="white"/>
+<path d="M 380 180 L 380 156 L 380 156 L 380 133" stroke="black" fill="none" stroke-dasharray="3.0 3.0"/>
+<path d="M 380 133 L 375 142 L 385 142 L 380 133" stroke="black" fill="white"/>
+<path d="M 510 190 L 510 146 L 390 146 L 390 133" stroke="black" fill="none"/>
+<path d="M 510 190 L 515 181 L 510 172 L 505 181 L 510 190" stroke="black" fill="white"/>
+<path d="M 500 190 L 500 156 L 380 156 L 380 133" stroke="black" fill="none" stroke-dasharray="3.0 3.0"/>
+<path d="M 380 133 L 375 142 L 385 142 L 380 133" stroke="black" fill="white"/>
+<path d="M 532 190 L 554 170" stroke="black" fill="none" stroke-dasharray="3.0 3.0"/>
+</g></svg>

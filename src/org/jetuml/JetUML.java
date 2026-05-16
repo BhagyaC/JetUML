@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -33,8 +33,10 @@ import org.jetuml.application.Version;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.geom.Rectangle;
 import org.jetuml.gui.DeserializationErrorAlert;
+import org.jetuml.gui.DialogStage;
 import org.jetuml.gui.EditorFrame;
 import org.jetuml.gui.GuiUtils;
+import org.jetuml.gui.NotificationService;
 import org.jetuml.gui.tips.TipDialog;
 import org.jetuml.persistence.DeserializationException;
 import org.jetuml.persistence.PersistenceService;
@@ -52,7 +54,7 @@ import javafx.stage.Stage;
 public final class JetUML extends Application
 {
 	@SuppressWarnings("exports")
-	public static final Version VERSION = Version.create(3, 6);
+	public static final Version VERSION = Version.create(3, 9);
 	
 	private static HostServices aHostServices; // Required to open a browser page.
 	
@@ -99,12 +101,18 @@ public final class JetUML extends Application
 			System.exit(0);
 		}
 		
-		EditorFrame editor = new EditorFrame(pStage);
+		DialogStage dialogStage = new DialogStage(pStage);
+		dialogStage.getScene().getStylesheets().add(getClass().getResource("JetUML.css").toExternalForm());
+		
+		EditorFrame editor = new EditorFrame(pStage, dialogStage);
 		diagramToOpen.ifPresent(diagram -> editor.setOpenFileAsDiagram(fileToOpen.get(), diagram));
 		pStage.setScene(new Scene(editor));
+
+		NotificationService.instance().setMainStage(pStage);
 		
 		pStage.getScene().getStylesheets().add(getClass().getResource("JetUML.css").toExternalForm());
-
+		editor.booleanPreferenceChanged(UserPreferences.BooleanPreference.darkMode);
+		
 		pStage.setOnCloseRequest(pWindowEvent -> 
 		{
 			pWindowEvent.consume();
@@ -114,7 +122,7 @@ public final class JetUML extends Application
 		
 		if(UserPreferences.instance().getBoolean(UserPreferences.BooleanPreference.showTips))
 		{
-			new TipDialog(pStage).show();
+			new TipDialog(dialogStage).show();
 		}
 	}
 	
@@ -152,9 +160,9 @@ public final class JetUML extends Application
 	private static void setStageBoundaries(Stage pStage)
 	{
 		Rectangle defaultStageBounds = GuiUtils.defaultStageBounds();
-		pStage.setX(defaultStageBounds.getX());
-		pStage.setY(defaultStageBounds.getY());
-		pStage.setWidth(defaultStageBounds.getWidth());
-		pStage.setHeight(defaultStageBounds.getHeight());
+		pStage.setX(defaultStageBounds.x());
+		pStage.setY(defaultStageBounds.y());
+		pStage.setWidth(defaultStageBounds.width());
+		pStage.setHeight(defaultStageBounds.height());
 	}
 }

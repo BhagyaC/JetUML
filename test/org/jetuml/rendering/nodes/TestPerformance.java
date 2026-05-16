@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -28,6 +28,7 @@ import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.persistence.PersistenceService;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -52,10 +53,10 @@ import javafx.scene.canvas.GraphicsContext;
  		DiagramRenderer renderer = DiagramType.newRendererInstanceFor(diagram);
 
  		double avgExecutionTime = 0.0;
- 		for (int i = 0; i < NUMBER_OF_TRIALS+1; i++)
+ 		for(int i = 0; i < NUMBER_OF_TRIALS+1; i++)
  		{
  			Instant start = Instant.now();
- 			renderer.draw(graphicContext);
+ 			renderer.draw(new GraphicsRenderingContext(graphicContext));
  			Instant stop = Instant.now();
 
  			if (i == 0)

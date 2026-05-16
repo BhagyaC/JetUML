@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -146,6 +146,30 @@ public class TestGeomUtils
 	}
 	
 	@Test
+	void testIntersectRectangle_NE_Corner()
+	{
+		assertEquals(new Point(60,0), GeomUtils.intersectRectangle(aRectangle, Direction.fromAngle(56)));
+	}
+	
+	@Test
+	void testIntersectRectangle_SE_Corner()
+	{
+		assertEquals(new Point(60,40), GeomUtils.intersectRectangle(aRectangle, Direction.fromAngle(124)));
+	}
+	
+	@Test
+	void testIntersectRectangle_SW_Corner()
+	{
+		assertEquals(new Point(0,40), GeomUtils.intersectRectangle(aRectangle, Direction.fromAngle(236)));
+	}
+	
+	@Test
+	void testIntersectRectangle_NW_Corner()
+	{
+		assertEquals(new Point(0,0), GeomUtils.intersectRectangle(aRectangle, Direction.fromAngle(304)));
+	}
+	
+	@Test
 	void testIntersectCircle_North()
 	{
 		assertEquals(new Point(10,0), GeomUtils.intersectCircle(aSquare, Direction.NORTH));
@@ -287,5 +311,107 @@ public class TestGeomUtils
 	void testIntersectRoundedRectangle_NW()
 	{
 		assertEquals(new Point(3,3), GeomUtils.intersectRoundedRectangle(aRectangle, Direction.fromAngle(305)));
+	}
+	
+	@Test
+	void testRound_Positive_Exact()
+	{
+		assertEquals(5, GeomUtils.round(5.0));
+	}
+	
+	@Test
+	void testRound_Positive_Floor1()
+	{
+		assertEquals(5, GeomUtils.round(5.1));
+	}
+	
+	@Test
+	void testRound_Positive_Floor2()
+	{
+		assertEquals(5, GeomUtils.round(5.11));
+	}
+	
+	@Test
+	void testRound_Positive_FloorBoundary()
+	{
+		assertEquals(5, GeomUtils.round(5.4999999));
+	}
+	
+	@Test
+	void testRound_Positive_CeilingBoundary()
+	{
+		assertEquals(6, GeomUtils.round(5.5));
+	}
+	
+	@Test
+	void testRound_Positive_Ceiling1()
+	{
+		assertEquals(6, GeomUtils.round(5.6));
+	}
+	
+	@Test
+	void testRound_Positive_Ceiling2()
+	{
+		assertEquals(6, GeomUtils.round(5.6991));
+	}
+	
+	@Test
+	void testRound_Positive_Max()
+	{
+		assertEquals(Integer.MAX_VALUE, GeomUtils.round(Integer.MAX_VALUE));
+	}
+	
+	@Test
+	void testRound_Negative_Exact()
+	{
+		assertEquals(-5, GeomUtils.round(-5.0));
+	}
+	
+	@Test
+	void testRound_Negative_Floor1()
+	{
+		assertEquals(-6, GeomUtils.round(-5.6));
+	}
+	
+	@Test
+	void testRound_Negative_Floor2()
+	{
+		assertEquals(-6, GeomUtils.round(-5.611));
+	}
+	
+	@Test
+	void testRound_Negative_FloorBoundary()
+	{
+		assertEquals(-6, GeomUtils.round(-5.5000001));
+	}
+	
+	@Test
+	void testRound_Negative_CeilingBoundary()
+	{
+		assertEquals(-5, GeomUtils.round(-5.5));
+	}
+	
+	@Test
+	void testRound_Negative_Ceiling1()
+	{
+		assertEquals(-5, GeomUtils.round(-5.4));
+	}
+	
+	@Test
+	void testRound_Negative_Ceiling2()
+	{
+		assertEquals(-5, GeomUtils.round(-5.4991));
+	}
+	
+	@Test
+	void testRound_Negative_Min()
+	{
+		assertEquals(Integer.MIN_VALUE, GeomUtils.round(Integer.MIN_VALUE));
+	}
+	
+	@Test
+	void testRound_Zero()
+	{
+		assertEquals(0, GeomUtils.round(0));
 	}
 }

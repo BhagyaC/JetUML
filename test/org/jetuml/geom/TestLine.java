@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -40,7 +40,7 @@ public class TestLine
 	@Test
 	void testToString()
 	{
-		assertEquals("[(x=0,y=0), (x=1,y=1)]", ZERO_TO_ONE.toString());
+		assertEquals("Line[point1=Point[x=0, y=0], point2=Point[x=1, y=1]]", ZERO_TO_ONE.toString());
 	}
 	
 	@Nested
@@ -52,14 +52,14 @@ public class TestLine
 		void testLineAsPoint_ZeroAtOrigin()
 		{
 			Line line = new Line(ZERO, ZERO);
-			assertEquals(0, line.getX1());
-			assertEquals(0, line.getY1());
-			assertEquals(0, line.getX2());
-			assertEquals(0, line.getY2());	
-			assertEquals(0, line.getPoint1().getX());
-			assertEquals(0, line.getPoint1().getY());
-			assertEquals(0, line.getPoint2().getX());
-			assertEquals(0, line.getPoint2().getY());
+			assertEquals(0, line.x1());
+			assertEquals(0, line.y1());
+			assertEquals(0, line.x2());
+			assertEquals(0, line.y2());	
+			assertEquals(0, line.point1().x());
+			assertEquals(0, line.point1().y());
+			assertEquals(0, line.point2().x());
+			assertEquals(0, line.point2().y());
 		}
 		
 		@Test
@@ -67,28 +67,28 @@ public class TestLine
 		void testLineAsPoint_ZeroNotAtOrigin()
 		{
 			Line line = new Line(ONE, ONE);
-			assertEquals(1, line.getX1());
-			assertEquals(1, line.getY1());
-			assertEquals(1, line.getX2());
-			assertEquals(1, line.getY2());	
-			assertEquals(1, line.getPoint1().getX());
-			assertEquals(1, line.getPoint1().getY());
-			assertEquals(1, line.getPoint2().getX());
-			assertEquals(1, line.getPoint2().getY());
+			assertEquals(1, line.x1());
+			assertEquals(1, line.y1());
+			assertEquals(1, line.x2());
+			assertEquals(1, line.y2());	
+			assertEquals(1, line.point1().x());
+			assertEquals(1, line.point1().y());
+			assertEquals(1, line.point2().x());
+			assertEquals(1, line.point2().y());
 		}
 		
 		@Test
 		@DisplayName("Non-Zero-length line")
 		void testLineAsPoint_NonZero()
 		{
-			assertEquals(0, ZERO_TO_ONE.getX1());
-			assertEquals(0, ZERO_TO_ONE.getY1());
-			assertEquals(1, ZERO_TO_ONE.getX2());
-			assertEquals(1, ZERO_TO_ONE.getY2());	
-			assertEquals(0, ZERO_TO_ONE.getPoint1().getX());
-			assertEquals(0, ZERO_TO_ONE.getPoint1().getY());
-			assertEquals(1, ZERO_TO_ONE.getPoint2().getX());
-			assertEquals(1, ZERO_TO_ONE.getPoint2().getY());
+			assertEquals(0, ZERO_TO_ONE.x1());
+			assertEquals(0, ZERO_TO_ONE.y1());
+			assertEquals(1, ZERO_TO_ONE.x2());
+			assertEquals(1, ZERO_TO_ONE.y2());	
+			assertEquals(0, ZERO_TO_ONE.point1().x());
+			assertEquals(0, ZERO_TO_ONE.point1().y());
+			assertEquals(1, ZERO_TO_ONE.point2().x());
+			assertEquals(1, ZERO_TO_ONE.point2().y());
 		}
 	}
 	
@@ -101,14 +101,14 @@ public class TestLine
 		void testLineAsPoint_ZeroAtOrigin()
 		{
 			Line line = new Line(0,0,0,0);
-			assertEquals(0, line.getX1());
-			assertEquals(0, line.getY1());
-			assertEquals(0, line.getX2());
-			assertEquals(0, line.getY2());	
-			assertEquals(0, line.getPoint1().getX());
-			assertEquals(0, line.getPoint1().getY());
-			assertEquals(0, line.getPoint2().getX());
-			assertEquals(0, line.getPoint2().getY());
+			assertEquals(0, line.x1());
+			assertEquals(0, line.y1());
+			assertEquals(0, line.x2());
+			assertEquals(0, line.y2());	
+			assertEquals(0, line.point1().x());
+			assertEquals(0, line.point1().y());
+			assertEquals(0, line.point2().x());
+			assertEquals(0, line.point2().y());
 		}
 		
 		@Test
@@ -116,14 +116,14 @@ public class TestLine
 		void testLineAsPoint_ZeroNotAtOrigin()
 		{
 			Line line = new Line(1,1,1,1);
-			assertEquals(1, line.getX1());
-			assertEquals(1, line.getY1());
-			assertEquals(1, line.getX2());
-			assertEquals(1, line.getY2());	
-			assertEquals(1, line.getPoint1().getX());
-			assertEquals(1, line.getPoint1().getY());
-			assertEquals(1, line.getPoint2().getX());
-			assertEquals(1, line.getPoint2().getY());
+			assertEquals(1, line.x1());
+			assertEquals(1, line.y1());
+			assertEquals(1, line.x2());
+			assertEquals(1, line.y2());	
+			assertEquals(1, line.point1().x());
+			assertEquals(1, line.point1().y());
+			assertEquals(1, line.point2().x());
+			assertEquals(1, line.point2().y());
 		}
 		
 		@Test
@@ -131,14 +131,14 @@ public class TestLine
 		void testLineAsPoint_NonZero()
 		{
 			Line line = new Line(0,0,1,1);
-			assertEquals(0, line.getX1());
-			assertEquals(0, line.getY1());
-			assertEquals(1, line.getX2());
-			assertEquals(1, line.getY2());	
-			assertEquals(0, line.getPoint1().getX());
-			assertEquals(0, line.getPoint1().getY());
-			assertEquals(1, line.getPoint2().getX());
-			assertEquals(1, line.getPoint2().getY());
+			assertEquals(0, line.x1());
+			assertEquals(0, line.y1());
+			assertEquals(1, line.x2());
+			assertEquals(1, line.y2());	
+			assertEquals(0, line.point1().x());
+			assertEquals(0, line.point1().y());
+			assertEquals(1, line.point2().x());
+			assertEquals(1, line.point2().y());
 		}
 	}
 	
@@ -151,10 +151,10 @@ public class TestLine
 		void testZeroLengthLineAtOrigin()
 		{
 			Rectangle spanning = new Line(0,0,0,0).spanning();
-			assertEquals(0, spanning.getX());
-			assertEquals(0, spanning.getY());
-			assertEquals(0, spanning.getWidth());
-			assertEquals(0, spanning.getHeight());
+			assertEquals(0, spanning.x());
+			assertEquals(0, spanning.y());
+			assertEquals(0, spanning.width());
+			assertEquals(0, spanning.height());
 		}
 		
 		@Test
@@ -162,10 +162,10 @@ public class TestLine
 		void testZeroLengthLineNotAtOrigin()
 		{
 			Rectangle spanning = new Line(5,5,5,5).spanning();
-			assertEquals(5, spanning.getX());
-			assertEquals(5, spanning.getY());
-			assertEquals(0, spanning.getWidth());
-			assertEquals(0, spanning.getHeight());
+			assertEquals(5, spanning.x());
+			assertEquals(5, spanning.y());
+			assertEquals(0, spanning.width());
+			assertEquals(0, spanning.height());
 		}
 		
 		@Test
@@ -173,10 +173,10 @@ public class TestLine
 		void testZeroLengthLineGoingBottomRight()
 		{
 			Rectangle spanning = new Line(1,1,5,6).spanning();
-			assertEquals(1, spanning.getX());
-			assertEquals(1, spanning.getY());
-			assertEquals(4, spanning.getWidth());
-			assertEquals(5, spanning.getHeight());
+			assertEquals(1, spanning.x());
+			assertEquals(1, spanning.y());
+			assertEquals(4, spanning.width());
+			assertEquals(5, spanning.height());
 		}
 		
 		@Test
@@ -184,10 +184,10 @@ public class TestLine
 		void testZeroLengthLineGoingTopLeft()
 		{
 			Rectangle spanning = new Line(5,6,1,1).spanning();
-			assertEquals(1, spanning.getX());
-			assertEquals(1, spanning.getY());
-			assertEquals(4, spanning.getWidth());
-			assertEquals(5, spanning.getHeight());
+			assertEquals(1, spanning.x());
+			assertEquals(1, spanning.y());
+			assertEquals(4, spanning.width());
+			assertEquals(5, spanning.height());
 		}
 	}
 	
@@ -264,10 +264,10 @@ public class TestLine
 		"5,10, 20,30"})
 	void testReversed(int pX1, int pY1, int pX2, int pY2)
 	{
-		Line line = new Line(pX1, pX2, pY2, pY2);
+		Line line = new Line(pX1, pX2, pY1, pY2);
 		Line reversed = line.reversed();
-		assertEquals(line.getPoint1(), reversed.getPoint2());
-		assertEquals(line.getPoint2(), reversed.getPoint1());
+		assertEquals(line.point1(), reversed.point2());
+		assertEquals(line.point2(), reversed.point1());
 	}
 	
 	@ParameterizedTest

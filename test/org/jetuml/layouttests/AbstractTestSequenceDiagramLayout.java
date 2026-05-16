@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -53,19 +53,19 @@ public abstract class AbstractTestSequenceDiagramLayout extends AbstractTestDiag
 	protected static void verifyImplicitParameterNodeTopRectangleDefaultHeight(Node pNode)
 	{
 		final int TOP_HEIGHT = getStaticIntFieldValue(ImplicitParameterNodeRenderer.class, "TOP_HEIGHT");
-		ImplicitParameterNodeRenderer instanceOfImplicitParameterNodeViewer = getInstanceOfImplicitParameterNodeViewer(pNode);
+		ImplicitParameterNodeRenderer instanceOfImplicitParameterNodeViewer = getInstanceOfImplicitParameterNodeViewer();
 		Rectangle implicitParameterTopRectangle = instanceOfImplicitParameterNodeViewer.getTopRectangle(pNode);
-		assertEquals(TOP_HEIGHT, implicitParameterTopRectangle.getHeight());
+		assertEquals(TOP_HEIGHT, implicitParameterTopRectangle.height());
 	}
 	
 	protected void verifyCallNodeDefaultWidth(Node pNode)
 	{
 		final int WIDTH = getStaticIntFieldValue(CallNodeRenderer.class, "WIDTH");
 		Rectangle nodeBounds = aRenderer.getBounds(pNode);
-		assertEquals(WIDTH, nodeBounds.getWidth());
+		assertEquals(WIDTH, nodeBounds.width());
 	}
 	
-	private static ImplicitParameterNodeRenderer getInstanceOfImplicitParameterNodeViewer(Node pImplicitParameterNode)
+	private static ImplicitParameterNodeRenderer getInstanceOfImplicitParameterNodeViewer()
 	{
 		try
 		{

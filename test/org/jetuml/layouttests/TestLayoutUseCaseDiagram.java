@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -79,16 +79,6 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 	}
 	
 	/**
-	 * Tests that all actor nodes that are supposed to have the default dimension actually do. 
-	 */
-	@ParameterizedTest
-	@ValueSource(strings = {"Actor", "Actor2", "Actor3"})
-	void testActorNodesDefaultDimension(String pNodeName)
-	{
-		verifyActorNodeWithNameDefaultDimensions(nodeByName(pNodeName));
-	}
-	
-	/**
 	 * Tests that the note node has the default dimensions. 
 	 */
 	@Test
@@ -112,8 +102,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle actorNodeBounds = aRenderer.getBounds(actorNode);
 		Rectangle useCase1NodeBounds = aRenderer.getBounds(nodeByName("Use case 1"));
 		Line associationEdgeLine = aRenderer.getConnectionPoints(associationEdge);
-		assertEquals(actorNodeBounds.getMaxX(), associationEdgeLine.getPoint1().getX());
-		assertTrue(useCase1NodeBounds.contains(associationEdgeLine.getPoint2()));
+		assertEquals(actorNodeBounds.maxX(), associationEdgeLine.point1().x());
+		assertTrue(useCase1NodeBounds.contains(associationEdgeLine.point2()));
 	}
 	
 	/**
@@ -131,8 +121,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle useCase1NodeBounds = aRenderer.getBounds(nodeByName("Use case 1"));
 		Rectangle useCase4NodeBounds = aRenderer.getBounds(useCase4Node);
 		Line associationEdgeLine = aRenderer.getConnectionPoints(associationEdge);
-		assertTrue(useCase1NodeBounds.contains(associationEdgeLine.getPoint1()));
-		assertTrue(useCase4NodeBounds.contains(associationEdgeLine.getPoint2()));
+		assertTrue(useCase1NodeBounds.contains(associationEdgeLine.point1()));
+		assertTrue(useCase4NodeBounds.contains(associationEdgeLine.point2()));
 	}
 	
 	/**
@@ -150,8 +140,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle actor2NodeBounds = aRenderer.getBounds(nodeByName("Actor2"));
 		Rectangle useCase2NodeBounds = aRenderer.getBounds(useCase2Node);
 		Line associationEdgeLine = aRenderer.getConnectionPoints(associationEdge);
-		assertEquals(actor2NodeBounds.getMaxX(), associationEdgeLine.getPoint1().getX());
-		assertTrue(useCase2NodeBounds.contains(associationEdgeLine.getPoint2()));
+		assertEquals(actor2NodeBounds.maxX(), associationEdgeLine.point1().x());
+		assertTrue(useCase2NodeBounds.contains(associationEdgeLine.point2()));
 	}
 	
 	/**
@@ -169,8 +159,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle actor2NodeBounds = aRenderer.getBounds(nodeByName("Actor2"));
 		Rectangle useCase3NodeBounds = aRenderer.getBounds(useCase3Node);
 		Line associationEdgeLine = aRenderer.getConnectionPoints(associationEdge);
-		assertEquals(actor2NodeBounds.getMaxX(), associationEdgeLine.getPoint1().getX());
-		assertEquals(useCase3NodeBounds.getX(), associationEdgeLine.getPoint2().getX());
+		assertEquals(actor2NodeBounds.maxX(), associationEdgeLine.point1().x());
+		assertEquals(useCase3NodeBounds.x(), associationEdgeLine.point2().x());
 	}
 	
 	/**
@@ -190,8 +180,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle actor3NodeBounds = aRenderer.getBounds(nodeByName("Actor3"));
 		Rectangle actor2NodeBounds = aRenderer.getBounds(actor2Node);
 		Line extendEdgeLine = aRenderer.getConnectionPoints(extendEdge);
-		assertEquals(actor3NodeBounds.getMaxX(), extendEdgeLine.getPoint1().getX());
-		assertEquals(actor2NodeBounds.getX(), extendEdgeLine.getPoint2().getX());
+		assertEquals(actor3NodeBounds.maxX(), extendEdgeLine.point1().x());
+		assertEquals(actor2NodeBounds.x(), extendEdgeLine.point2().x());
 	}
 	
 	/**
@@ -211,8 +201,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle useCase2NodeBounds = aRenderer.getBounds(nodeByName("Use case 2"));
 		Rectangle useCase4NodeBounds = aRenderer.getBounds(useCase4Node);
 		Line extendEdgeLine = aRenderer.getConnectionPoints(extendEdge);
-		assertEquals(useCase2NodeBounds.getMaxX(), extendEdgeLine.getPoint1().getX());
-		assertEquals(useCase4NodeBounds.getX(), extendEdgeLine.getPoint2().getX());
+		assertEquals(useCase2NodeBounds.maxX(), extendEdgeLine.point1().x());
+		assertEquals(useCase4NodeBounds.x(), extendEdgeLine.point2().x());
 	}
 	
 	/**
@@ -232,8 +222,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle useCase2NodeBounds = aRenderer.getBounds(nodeByName("Use case 2"));
 		Rectangle useCase3NodeBounds = aRenderer.getBounds(useCase3Node);
 		Line includeEdgeLine = aRenderer.getConnectionPoints(includeEdge);
-		assertEquals(useCase2NodeBounds.getMaxY(), includeEdgeLine.getPoint1().getY());
-		assertEquals(useCase3NodeBounds.getY(), includeEdgeLine.getPoint2().getY());
+		assertEquals(useCase2NodeBounds.maxY(), includeEdgeLine.point1().y());
+		assertEquals(useCase3NodeBounds.y(), includeEdgeLine.point2().y());
 	}
 	
 	/**
@@ -251,8 +241,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle actor3NodeBounds = aRenderer.getBounds(nodeByName("Actor3"));
 		Rectangle actorNodeBounds = aRenderer.getBounds(actorNode);
 		Line generalizationEdgeLine = aRenderer.getConnectionPoints(generalizationEdge);
-		assertEquals(actor3NodeBounds.getMaxX(), generalizationEdgeLine.getPoint1().getX());
-		assertEquals(actorNodeBounds.getX(), generalizationEdgeLine.getPoint2().getX());
+		assertEquals(actor3NodeBounds.maxX(), generalizationEdgeLine.point1().x());
+		assertEquals(actorNodeBounds.x(), generalizationEdgeLine.point2().x());
 	}
 	
 	/**
@@ -270,8 +260,8 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 		Rectangle useCase2NodeBounds = aRenderer.getBounds(nodeByName("Use case 2"));
 		Rectangle useCase1NodeBounds = aRenderer.getBounds(useCase1Node);
 		Line generalizationEdgeLine = aRenderer.getConnectionPoints(generalizationEdge);
-		assertTrue(useCase2NodeBounds.contains(generalizationEdgeLine.getPoint1()));
-		assertTrue(useCase1NodeBounds.contains(generalizationEdgeLine.getPoint2()));
+		assertTrue(useCase2NodeBounds.contains(generalizationEdgeLine.point1()));
+		assertTrue(useCase1NodeBounds.contains(generalizationEdgeLine.point2()));
 	}
 	
 	/**
@@ -282,6 +272,6 @@ public class TestLayoutUseCaseDiagram extends AbstractTestUseCaseDiagramLayout
 	{
 		Rectangle noteNodeBounds = aRenderer.getBounds(nodeByName("A note"));
 		Line noteEdgeLine = aRenderer.getConnectionPoints(edgesByType(NoteEdge.class).get(0));
-		assertEquals(noteNodeBounds.getX(), noteEdgeLine.getPoint1().getX());
+		assertEquals(noteNodeBounds.x(), noteEdgeLine.point1().x());
 	}
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -19,8 +19,6 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
 package org.jetuml.diagram;
-
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +60,7 @@ public class AbstractTestUsageScenarios
 	public static void setupClass()
 	{
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 		JavaFXLoader.load();
 	}
 	
@@ -106,9 +104,9 @@ public class AbstractTestUsageScenarios
 		CompoundOperation operation = new CompoundOperation();
 		for( DiagramElement element : aSelection)
 		{
-			if( element instanceof Node)
+			if( element instanceof Node node)
 			{
-				operation.add(DiagramBuilder.createMoveNodeOperation((Node)element, pX, pY));
+				operation.add(DiagramBuilder.createMoveNodeOperation(node, pX, pY));
 			}
 		}
 		aProcessor.executeNewOperation(operation);

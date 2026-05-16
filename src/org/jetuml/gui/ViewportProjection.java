@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,9 @@
  *******************************************************************************/
 package org.jetuml.gui;
 
+import org.jetuml.annotations.Immutable;
+import org.jetuml.geom.GeomUtils;
+
 /**
  * An instance of this class can be used to make viewport projection
  * computations to compare visible areas of a scrollpane viewport with an
@@ -28,6 +31,7 @@ package org.jetuml.gui;
  * then discarded. Both dimensions of the viewport must be equal to or
  * smaller than the canvas's.
  */
+@Immutable
 public final class ViewportProjection
 {
 	private final int aViewportWidth;
@@ -86,8 +90,7 @@ public final class ViewportProjection
 	 */
 	public int getHiddenLeft()
 	{
-		double hiddenLeft = hiddenWidth() * aHValue;
-		return Math.round((float) hiddenLeft);
+		return GeomUtils.round(hiddenWidth() * aHValue);
 	}
 	
 	/**
@@ -96,8 +99,7 @@ public final class ViewportProjection
 	 */
 	public int getHiddenRight()
 	{
-		double hiddenRight = hiddenWidth() * (1.0-aHValue);
-		return Math.round((float) hiddenRight);
+		return GeomUtils.round(hiddenWidth() * (1.0-aHValue));
 	}
 	
 	/**
@@ -106,8 +108,7 @@ public final class ViewportProjection
 	 */
 	public int getHiddenTop()
 	{
-		double hiddenTop = hiddenHeight() * aVValue;
-		return Math.round((float) hiddenTop);
+		return GeomUtils.round(hiddenHeight() * aVValue);
 	}
 	
 	/**
@@ -116,8 +117,7 @@ public final class ViewportProjection
 	 */
 	public int getHiddenBottom()
 	{
-		double hiddenBottom = hiddenHeight() * (1.0 - aVValue);
-		return Math.round((float) hiddenBottom); 
+		return GeomUtils.round(hiddenHeight() * (1.0 - aVValue)); 
 	}
 	
 	private int hiddenHeight()

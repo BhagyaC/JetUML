@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,19 +20,19 @@
  *******************************************************************************/
 package org.jetuml.persistence;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Optional;
 
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.validator.DiagramValidator;
+import org.jetuml.diagram.validator.Violation;
 import org.jetuml.persistence.DeserializationException.Category;
 import org.jetuml.persistence.json.JsonException;
 import org.jetuml.persistence.json.JsonParser;
@@ -76,27 +76,23 @@ public final class PersistenceService
 	public static Diagram read(File pFile) throws IOException, DeserializationException
 	{
 		assert pFile != null;
-		try( BufferedReader in = new BufferedReader(
-				new InputStreamReader(new FileInputStream(pFile), StandardCharsets.UTF_8)))
+		try
 		{
-			String inputLine = in.readLine();
-			// An empty buffer results in a null value from readLine: convert it back to a string
-			// to avoid a null dereference.
-			if( inputLine == null )
-			{
-				inputLine = "";
-			}
+			String inputLine = Files.readString(pFile.toPath(), StandardCharsets.UTF_8);
 			Diagram diagram = new JsonDecoder(JsonParser.parse(inputLine)).decode();
 			DiagramValidator validator = DiagramType.newValidatorInstanceFor(diagram);
-			if(!validator.hasValidStructure())
+			Optional<Violation> violation = validator.validate();
+			if( violation.isPresent() )
 			{
-				throw new DeserializationException(Category.STRUCTURAL, "Diagram has invalid structure");
+				if(violation.get().isStructural())
+				{
+					throw new DeserializationException(Category.STRUCTURAL, "Diagram has invalid structure");
+				}
+				else
+				{
+					throw new DeserializationException(Category.SEMANTIC, "Diagram has invalid semantics");
+				}
 			}
-			else if( !validator.hasValidSemantics() )
-			{
-				throw new DeserializationException(Category.SEMANTIC, "Diagram has invalid semantics");
-			}
-			
 			return diagram;
 		}
 		catch(JsonException exception)

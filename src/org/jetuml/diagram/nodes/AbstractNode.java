@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -38,7 +38,7 @@ public abstract class AbstractNode extends AbstractDiagramElement implements Nod
 	@Override
 	public void translate(int pDeltaX, int pDeltaY)
 	{
-		aPosition = new Point( aPosition.getX() + pDeltaX, aPosition.getY() + pDeltaY );
+		aPosition = new Point( aPosition.x() + pDeltaX, aPosition.y() + pDeltaY );
 	}
 	
 	@Override

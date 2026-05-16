@@ -1,4 +1,12 @@
-# Installation Instructions
+# Download and Installation
+
+JetUML is available under the terms of the [GNU General Public License v3](https://www.gnu.org/licenses/gpl.html). The application is distributed as a Java archive (jar) file, or as native binary application on some operating systems. Download the application from the [latest release](https://github.com/prmr/JetUML/releases) page. Please consider supporting the project by starring [the GitHub repo](https://github.com/prmr/JetUML) and by [writing an endorsement](mailto:jetuml@cs.mcgill.ca).
+
+## Privacy Policy
+
+JetUML does not collect any information. The application only accesses the network to open web pages via the commands in the Help menu.
+
+## Installation Instructions
 
 JetUML is distributed in two formats:
 
@@ -15,7 +23,7 @@ JetUML is distributed in two formats:
 
 ### Thin Jar
 
-*This format requires that you have both [Java](https://openjdk.java.net/) and [JavaFX](https://openjfx.io/) version 17 or above running on your system.* 
+*This format requires that you have both [Java](https://openjdk.java.net/) and [JavaFX](https://openjfx.io/) version 21 or above installed on your system.* 
 
 Download file `JetUML-<Version>.jar` from the [latest release page](https://github.com/prmr/JetUML/releases), to a local directory. 
 
@@ -28,13 +36,5 @@ javaw --module-path "PATH_TO_JAVAFX_LIB" --add-modules=javafx.controls,javafx.sw
 Where `PATH_TO_JAVAFX_LIB` is the full path to the `lib` directory of the `javafx` installation and `JETUML_FILE` is the path to the JetUML jar downloaded. For example:
 
 ```shell
-javaw --module-path "C:\local\Java\javafx-sdk-17.0.2\lib" --add-modules=javafx.controls,javafx.swing,java.desktop,java.prefs -jar JetUML-3.4.jar
+javaw --module-path "C:\local\Java\javafx-sdk-21.0.2\lib" --add-modules=javafx.controls,javafx.swing,java.desktop,java.prefs -jar JetUML-3.9.jar
 ```
-
-## Package Managers
-
-Some systems may have a pre-packaged version of JetUML available.
-
-| System | Link | Maintainers |
-|--------|------|-------------|
-| Arch   | [aur.archlinux.org/packages/jetuml](https://aur.archlinux.org/packages/jetuml) | Community   |

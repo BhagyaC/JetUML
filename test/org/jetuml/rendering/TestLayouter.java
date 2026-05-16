@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -44,10 +44,8 @@ import org.jetuml.diagram.edges.DependencyEdge;
 import org.jetuml.diagram.edges.GeneralizationEdge;
 import org.jetuml.diagram.edges.GeneralizationEdge.Type;
 import org.jetuml.diagram.nodes.ClassNode;
-import org.jetuml.geom.EdgePath;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
-import org.jetuml.geom.Side;
 import org.jetuml.rendering.edges.EdgeStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -208,7 +206,7 @@ public class TestLayouter
 		aEdgeC = new AggregationEdge(pType);
 		aEdgeD = new GeneralizationEdge();
 	
-		for (Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, aNodeE))
+		for(Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, aNodeE))
 		{
 			aDiagram.addRootNode(node);
 		}
@@ -217,7 +215,7 @@ public class TestLayouter
 		aEdgeB.connect(aNodeD, aNodeB);
 		aEdgeC.connect(aNodeD, aNodeC);
 		aEdgeD.connect(aNodeE, aNodeD);
-		for (Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
+		for(Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
 		{
 			aDiagram.addEdge(edge);
 		}
@@ -247,7 +245,7 @@ public class TestLayouter
 		aEdgeB = new GeneralizationEdge(Type.Inheritance);
 		aEdgeC = new GeneralizationEdge(Type.Implementation);
 		aEdgeD = new AssociationEdge();
-		for (Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD,endNode))
+		for(Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD,endNode))
 		{
 			aDiagram.addRootNode(node);
 		}
@@ -256,7 +254,7 @@ public class TestLayouter
 		aEdgeC.connect(aNodeC, endNode);
 		aEdgeD.connect(aNodeD, endNode);
 		
-		for (Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
+		for(Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
 		{
 			aDiagram.addEdge(edge);
 		}
@@ -280,7 +278,7 @@ public class TestLayouter
 		aEdgeE = new AggregationEdge(AggregationEdge.Type.Aggregation);
 		aEdgeF = new AggregationEdge(AggregationEdge.Type.Composition);
 		aEdgeG = new DependencyEdge();
-		for (Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, aNodeE, aNodeF, aNodeG, endNode))
+		for(Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, aNodeE, aNodeF, aNodeG, endNode))
 		{
 			aDiagram.addRootNode(node);
 		}
@@ -292,7 +290,7 @@ public class TestLayouter
 		aEdgeF.connect(aNodeF, endNode);
 		aEdgeG.connect(aNodeG, endNode);
 		
-		for (Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD, aEdgeE, aEdgeF, aEdgeG))
+		for(Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD, aEdgeE, aEdgeF, aEdgeG))
 		{
 			aDiagram.addEdge(edge);
 		}
@@ -785,7 +783,7 @@ public class TestLayouter
 	public void testGetEdgesToMergeEnd()
 	{
 		//Create a diagram with 6 edges incoming on endNode and determine which edges should merge with edgeD
-		Node endNode = new ClassNode();
+		endNode = new ClassNode();
 		Node nodeA = new ClassNode();
 		Node nodeB = new ClassNode();
 		Node nodeC = new ClassNode();
@@ -848,7 +846,7 @@ public class TestLayouter
 	public void testStoredConflictingEdges()
 	{
 		endNode = new ClassNode();
-		for (Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, endNode))
+		for(Node node : Arrays.asList(aNodeA, aNodeB, aNodeC, aNodeD, endNode))
 		{
 			aDiagram.addRootNode(node);
 		}
@@ -860,7 +858,7 @@ public class TestLayouter
 		aEdgeB.connect(aNodeB, endNode);
 		aEdgeC.connect(aNodeC, endNode);
 		aEdgeD.connect(aNodeD, endNode);
-		for (Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
+		for(Edge edge : Arrays.asList(aEdgeA, aEdgeB, aEdgeC, aEdgeD))
 		{
 			aDiagram.addEdge(edge);
 		}
@@ -1487,7 +1485,7 @@ public class TestLayouter
 	public void testGetConnectionPoint_NorthSouthSides()
 	{
 		//Initialize 1 end node and 6 start nodes 
-		Node endNode = new ClassNode();
+		endNode = new ClassNode();
 		Node startNode1 = new ClassNode();
 		Node startNode2 = new ClassNode();
 		Node startNode3 = new ClassNode();
@@ -1552,7 +1550,7 @@ public class TestLayouter
 	public void testGetConnectionPoint_EastWestSides()
 	{
 		//Initialize 1 end node and 4 start nodes 
-		Node endNode = new ClassNode();
+		endNode = new ClassNode();
 		Node startNode1 = new ClassNode();
 		Node startNode2 = new ClassNode();
 		Node startNode3 = new ClassNode();
@@ -2849,7 +2847,7 @@ public class TestLayouter
 	}
 	
 	
-	private List<Point> getPoints()
+	private static List<Point> getPoints()
 	{
 		List<Point> result = new ArrayList<>();
 		result.add(new Point(190, 300));

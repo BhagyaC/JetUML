@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,8 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.CallNode;
@@ -28,13 +30,11 @@ import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Direction;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.SequenceDiagramRenderer;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 
 /**
  * An object to render a call node in a Sequence diagram.
@@ -62,28 +62,28 @@ public final class CallNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		if(((CallNode)pElement).isOpenBottom())
 		{
-			pGraphics.setStroke(Color.WHITE);
-			RenderingUtils.drawRectangle(pGraphics, getBounds(pElement));
-			pGraphics.setStroke(Color.BLACK);
+			pContext.drawRectangle(getBounds(pElement), ColorScheme.get().fill(), 
+					ColorScheme.get().fill(), Optional.of(ColorScheme.get().dropShadow()));
 			final Rectangle bounds = getBounds(pElement);
-			int x1 = bounds.getX();
-			int x2 = bounds.getMaxX();
-			int y1 = bounds.getY();
-			int y3 = bounds.getMaxY();
+			int x1 = bounds.x();
+			int x2 = bounds.maxX();
+			int y1 = bounds.y();
+			int y3 = bounds.maxY();
 			int y2 = y3 - CallNode.CALL_YGAP;
-			RenderingUtils.drawLine(pGraphics, x1, y1, x2, y1, LineStyle.SOLID);
-			RenderingUtils.drawLine(pGraphics, x1, y1, x1, y2, LineStyle.SOLID);
-			RenderingUtils.drawLine(pGraphics, x2, y1, x2, y2, LineStyle.SOLID);
-			RenderingUtils.drawLine(pGraphics, x1, y2, x1, y3, LineStyle.DOTTED);
-			RenderingUtils.drawLine(pGraphics, x2, y2, x2, y3, LineStyle.DOTTED);
+			pContext.strokeLine(x1, y1, x2, y1, ColorScheme.get().stroke(), LineStyle.SOLID);
+			pContext.strokeLine(x1, y1, x1, y2, ColorScheme.get().stroke(), LineStyle.SOLID);
+			pContext.strokeLine(x2, y1, x2, y2, ColorScheme.get().stroke(), LineStyle.SOLID);
+			pContext.strokeLine(x1, y2, x1, y3, ColorScheme.get().stroke(), LineStyle.DOTTED);
+			pContext.strokeLine(x2, y2, x2, y3, ColorScheme.get().stroke(), LineStyle.DOTTED);
 		}
 		else
 		{
-			RenderingUtils.drawRectangle(pGraphics, getBounds(pElement));
+			pContext.drawRectangle(getBounds(pElement), ColorScheme.get().fill(), 
+					ColorScheme.get().stroke(), Optional.of(ColorScheme.get().dropShadow()));
 		}
 	}
 
@@ -92,11 +92,11 @@ public final class CallNodeRenderer extends AbstractNodeRenderer
 	{
 		if(pDirection == Direction.EAST)
 		{
-			return new Point(getBounds(pNode).getMaxX(), getBounds(pNode).getY());
+			return new Point(getBounds(pNode).maxX(), getBounds(pNode).y());
 		}
 		else
 		{
-			return new Point(getBounds(pNode).getX(), getBounds(pNode).getY());
+			return new Point(getBounds(pNode).x(), getBounds(pNode).y());
 		}
 	}
 	
@@ -107,7 +107,7 @@ public final class CallNodeRenderer extends AbstractNodeRenderer
 	private int getX(Node pNode)
 	{
 		final int nestingDepth = parent().getNestingDepth((CallNode)pNode);
-		final int lifelineXCoordinate = parent().getCenterXCoordinate((ImplicitParameterNode)pNode.getParent());
+		final int lifelineXCoordinate = SequenceDiagramRenderer.getCenterXCoordinate((ImplicitParameterNode)pNode.getParent());
 		return lifelineXCoordinate - NESTING_SHIFT_DISTANCE + (NESTING_SHIFT_DISTANCE * nestingDepth);
 	}
 	

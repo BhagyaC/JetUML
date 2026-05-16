@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -25,12 +25,12 @@ import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.Edge;
 import org.jetuml.diagram.edges.UseCaseDependencyEdge;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
 import org.jetuml.rendering.LineStyle;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
 
 import javafx.scene.canvas.Canvas;
 
@@ -55,8 +55,8 @@ public final class UseCaseDependencyEdgeRenderer extends LabeledStraightEdgeRend
 		Canvas canvas = super.createIcon(pDiagramType, edge);
 		final float scale = 0.75f;
 		canvas.getGraphicsContext2D().scale(scale, scale);
-		StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED).draw(getIconTag(edge), 
-				canvas.getGraphicsContext2D(), new Rectangle(1, BUTTON_SIZE, 1, 1));
+		new StringRenderer(Alignment.CENTER).draw(getIconTag(edge), new Rectangle(1, BUTTON_SIZE, 1, 1),
+				new GraphicsRenderingContext(canvas.getGraphicsContext2D()));
 		return canvas;
 	}
 

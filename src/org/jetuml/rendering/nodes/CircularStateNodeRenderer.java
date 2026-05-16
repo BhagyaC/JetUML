@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,8 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.geom.Dimension;
@@ -27,10 +29,10 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
@@ -57,19 +59,21 @@ public final class CircularStateNodeRenderer extends AbstractNodeRenderer
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		final Rectangle bounds = getBounds(pElement);
 		if( aFinal )
 		{
-			RenderingUtils.drawCircle(pGraphics, bounds.getX(), bounds.getY(), DIAMETER, Color.WHITE, true);
+			pContext.drawOval(bounds.x(), bounds.y(), DIAMETER, DIAMETER, Color.WHITE, ColorScheme.get().stroke(),
+					Optional.of(ColorScheme.get().dropShadow()));
 			int innerDiameter = DIAMETER/2;
-			RenderingUtils.drawCircle(pGraphics, bounds.getX() + innerDiameter/2, 
-					bounds.getY() + innerDiameter/2, innerDiameter, Color.BLACK, false);
+			pContext.drawOval(bounds.x() + innerDiameter/2, 
+					bounds.y() + innerDiameter/2, innerDiameter, innerDiameter, Color.BLACK, Color.BLACK, Optional.empty());
 		}
 		else
 		{
-			RenderingUtils.drawCircle(pGraphics, bounds.getX(), bounds.getY(), DIAMETER, Color.BLACK, true);
+			pContext.drawOval(bounds.x(), bounds.y(), DIAMETER, DIAMETER, Color.BLACK, ColorScheme.get().stroke(),
+					Optional.of(ColorScheme.get().dropShadow()));
 		}
 	}
 	
@@ -82,6 +86,6 @@ public final class CircularStateNodeRenderer extends AbstractNodeRenderer
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		return new Rectangle(pNode.position().getX(), pNode.position().getY(), DIAMETER, DIAMETER);
+		return new Rectangle(pNode.position().x(), pNode.position().y(), DIAMETER, DIAMETER);
 	}
 }

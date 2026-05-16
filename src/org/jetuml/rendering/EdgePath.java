@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,18 +18,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-package org.jetuml.geom;
+package org.jetuml.rendering;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetuml.geom.Point;
+
 /**
  * Represents the path of an edge on a diagram as a list of points. 
  * Non-segmented paths consist of 2 points (the start and end points).
  */
-public class EdgePath implements Iterable<Point>
+public final class EdgePath implements Iterable<Point>
 {
 	private List<Point> aPoints;
 	
@@ -44,22 +46,6 @@ public class EdgePath implements Iterable<Point>
 		aPoints = Arrays.asList(pPoints);
 	}
 	
-	/**
-	 * Constructor for EdgePath using lines as arguments.
-	 * @param pLines the line segment(s) which compose the path.
-	 * @pre pLines.length() > 0
-	 */
-	public EdgePath(Line...pLines)
-	{
-		assert pLines.length > 0;
-		aPoints.add(pLines[0].getPoint1());
-		for (Line line : pLines)
-		{
-			aPoints.add(line.getPoint2());
-		}
-	}
-	
-
 	/**
 	 * Gets the starting point for the path.
 	 * @return the Point where the edge starts.
@@ -99,26 +85,26 @@ public class EdgePath implements Iterable<Point>
 	@Override
 	public boolean equals(Object pObj) 
 	{
-		if (this == pObj)
+		if(this == pObj)
 		{
 			return true;
 		}
-		if (pObj == null)
+		if(pObj == null)
 		{
 			return false;
 		}
-		if (getClass() != pObj.getClass())
+		if(getClass() != pObj.getClass())
 		{
 			return false;
 		}
 		EdgePath other = (EdgePath) pObj;
-		if (other.aPoints.size() != this.aPoints.size())
+		if(other.aPoints.size() != this.aPoints.size())
 		{
 			return false;
 		}
-		for (int i = 0; i < aPoints.size(); i++)
+		for(int i = 0; i < aPoints.size(); i++)
 		{
-			if (!other.aPoints.get(i).equals(aPoints.get(i)))
+			if(!other.aPoints.get(i).equals(aPoints.get(i)))
 			{
 				return false;
 			}
@@ -139,7 +125,5 @@ public class EdgePath implements Iterable<Point>
 	public Iterator<Point> iterator() 
 	{
 		return aPoints.iterator();
-	}
-	
-	
+	}	
 }

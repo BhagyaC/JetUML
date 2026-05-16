@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -33,7 +33,6 @@ import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * An object responsible for computing the geometry of a diagram. This class is 
@@ -53,18 +52,18 @@ public interface DiagramRenderer
 	 * Computes the geometry of the diagram and draws the diagram onto 
 	 * the graphics context.
 	 * 
-	 * @param pGraphics The graphics context where the diagram should be drawn.
+	 * @param pContext The rendering context where the diagram should be drawn.
 	 * @pre pGraphics != null.
 	 */
-	void draw(GraphicsContext pGraphics);
+	void draw(RenderingContext pContext);
 	
 	/**
      * Draws the element.
      * @param pElement The element to draw.
-     * @param pGraphics the graphics context
+     * @param pContext The rendering context where the diagram should be drawn.
      * @pre pElement != null
 	 */
-   	void draw(DiagramElement pElement, GraphicsContext pGraphics);
+   	void draw(DiagramElement pElement, RenderingContext pContext);
 	
 	/**
 	 * Returns the edge underneath the given point, if it exists.
@@ -109,15 +108,6 @@ public interface DiagramRenderer
 	 */
 	Canvas createIcon(DiagramElement pElement);
 	
-	/**
-	 * Draw selection handles around the element.
-	 * 
-	 * @param pElement The target element
-	 * @param pGraphics The graphics context
-	 * @pre pElement != null && pGraphics != null
-	 */
-	void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics);
-
 	/**
 	 * Gets the smallest rectangle that bounds the element. The bounding rectangle contains all labels.
 	 * 

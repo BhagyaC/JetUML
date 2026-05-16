@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,7 +20,6 @@
  *******************************************************************************/
 package org.jetuml.layouttests;
 
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -33,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
+import org.jetuml.application.UserPreferences.StringPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.Edge;
@@ -55,18 +55,22 @@ import org.junit.jupiter.api.BeforeAll;
  */
 public abstract class AbstractTestDiagramLayout
 {	
+	private static String userDefinedFontName;
 	private static int userDefinedFontSize;
 	
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontName = UserPreferences.instance().getString(UserPreferences.StringPreference.fontName);
+		UserPreferences.instance().setString(StringPreference.fontName, "System");
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, 12);
 	}
 	
 	@AfterAll
 	public static void restorePreferences()
 	{
+		UserPreferences.instance().setString(StringPreference.fontName, userDefinedFontName);
 		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
 	}
 	
@@ -160,14 +164,14 @@ public abstract class AbstractTestDiagramLayout
 	protected void verifyDefaultDimensions(Node pNode, int pDefaultWidth, int pDefaultHeight)
 	{
 		Rectangle bounds = aRenderer.getBounds(pNode);
-		assertEquals(pDefaultWidth, bounds.getWidth());
-		assertEquals(pDefaultHeight, bounds.getHeight());
+		assertEquals(pDefaultWidth, bounds.width());
+		assertEquals(pDefaultHeight, bounds.height());
 	}
 	
 	protected static void verifyPosition(Node pNode, int pExpectedX, int pExpectedY)
 	{
-		assertEquals(pExpectedX, pNode.position().getX());
-		assertEquals(pExpectedY, pNode.position().getY());
+		assertEquals(pExpectedX, pNode.position().x());
+		assertEquals(pExpectedY, pNode.position().y());
 	}
 	
 	protected void verifyNoteNodeDefaultDimensions(Node pNode)

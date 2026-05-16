@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -161,15 +161,15 @@ public final class Clipboard
 		List<Node> result = new ArrayList<>();
 		for( DiagramElement element : pSelection )
 		{
-			if( element instanceof Node )
+			if( element instanceof Node node)
 			{
-				if( missingParent( (Node)element ))
+				if( missingParent(node))
 				{
 					continue;
 				}
-				Node cloned = ((Node) element).clone();
+				Node cloned = node.clone();
 				result.add(cloned);
-				reassignEdges(pEdges, (Node)element, cloned);
+				reassignEdges(pEdges, node, cloned);
 			}
 		}
 		return result;
@@ -301,7 +301,7 @@ public final class Clipboard
 	private static boolean validElementFor( DiagramElement pElement, Diagram pDiagram )
 	{
 		// PointNodes are allowed in all diagrams despite not being contained in prototypes.
-		if ( pElement.getClass() == PointNode.class ) 
+		if( pElement.getClass() == PointNode.class ) 
 		{
 			return true;
 		}

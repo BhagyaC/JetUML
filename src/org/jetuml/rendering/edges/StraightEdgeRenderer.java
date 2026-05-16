@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -26,13 +26,14 @@ import org.jetuml.diagram.Edge;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.RenderingContext;
+import org.jetuml.rendering.GraphicsRenderingContext;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -62,13 +63,13 @@ public class StraightEdgeRenderer extends AbstractEdgeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Edge edge = (Edge) pElement;
 		Path shape = (Path) getShape(edge);
-		ToolGraphics.strokeSharpPath(pGraphics, shape, aLineStyle);
+		pContext.strokePath(shape, ColorScheme.get().stroke(), aLineStyle);
 		Line connectionPoints = getConnectionPoints(edge);
-		ArrowHeadRenderer.draw(pGraphics, aArrowHead, connectionPoints);
+		ArrowHeadRenderer.draw(pContext, aArrowHead, connectionPoints);
 	}
 	
 	@Override
@@ -89,8 +90,9 @@ public class StraightEdgeRenderer extends AbstractEdgeRenderer
 		Canvas canvas = new Canvas(BUTTON_SIZE, BUTTON_SIZE);
 		Path path = new Path();
 		path.getElements().addAll(new MoveTo(OFFSET, OFFSET), new LineTo(BUTTON_SIZE-OFFSET, BUTTON_SIZE-OFFSET));
-		ToolGraphics.strokeSharpPath(canvas.getGraphicsContext2D(), path, aLineStyle);
-		ArrowHeadRenderer.draw(canvas.getGraphicsContext2D(), aArrowHead, 
+		GraphicsRenderingContext context = new GraphicsRenderingContext(canvas.getGraphicsContext2D());
+		context.strokePath(path, ColorScheme.get().stroke(), aLineStyle);
+		ArrowHeadRenderer.draw(context, aArrowHead, 
 				new Point(OFFSET, OFFSET), new Point(BUTTON_SIZE-OFFSET, BUTTON_SIZE - OFFSET));
 		return canvas;
 	}

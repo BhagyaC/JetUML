@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -25,111 +25,28 @@ import org.jetuml.annotations.Immutable;
 /**
  * A framework independent representation of a rectangle in 
  * 2-dimensional integer space.
+ * @param x The X-coordinate of the top-left corner.
+ * @param y The Y-coordinate of the top-left corner.
+ * @param width The width of the rectangle. width >=0 
+ * @param height The height of the rectangle. height >= 0
  */
 @Immutable
-public class Rectangle
+public record Rectangle(int x, int y, int width, int height)
 {
-	private final int aX;
-	private final int aY;
-	private final int aWidth;
-	private final int aHeight;
-	
-	/**
-	 * Creates a new rectangle.
-	 * 
-	 * @param pX The X-coordinate of the top-left corner.
-	 * @param pY The Y-coordinate of the top-left corner.
-	 * @param pWidth The width of the rectangle.
-	 * @param pHeight The height of the rectangle.
-	 * @pre pWidth >=0 
-	 * @pre pHeight >= 0
-	 */
-	public Rectangle(int pX, int pY, int pWidth, int pHeight)
-	{
-		assert pWidth >= 0 && pHeight >= 0;
-		aX = pX;
-		aY = pY;
-		aWidth = pWidth;
-		aHeight = pHeight;
-	}
-	
-	/**
-	 * @return The X-coordinate of the top-left point.
-	 */
-	public int getX()
-	{
-		return aX;
-	}
-	
-	/**
-	 * @return The Y-coordinate of the top-left point.
-	 */
-	public int getY()
-	{
-		return aY;
-	}
-	
 	/**
 	 * @return The X-coordinate farthest from the origin. 
 	 */
-	public int getMaxX()
+	public int maxX()
 	{
-		return aX + aWidth;
+		return x + width;
 	}
 	
 	/**
 	 * @return The Y-coordinate farthest from the origin. 
 	 */
-	public int getMaxY()
+	public int maxY()
 	{
-		return aY + aHeight;
-	}
-	
-
-	/**
-	 * @return The width.
-	 */
-	public int getWidth()
-	{
-		return aWidth;
-	}
-	
-	/**
-	 * @return The height.
-	 */
-	public int getHeight()
-	{
-		return aHeight;
-	}
-	
-	/**
-	 * Returns a new Line object that corresponds to the specified
-	 * side of the rectangle.
-	 * 
-	 * @param pSide The required side.
-	 * @return A line with the geometry of the required side.
-	 * @pre pSide != null
-	 */
-	public Line getSide(Side pSide)
-	{
-		assert pSide != null;
-		if( pSide == Side.TOP )
-		{
-			return new Line(new Point(getX(), getY()), new Point(getMaxX(), getY()));
-		}
-		else if( pSide == Side.BOTTOM)
-		{
-			return new Line(new Point(getX(), getMaxY()), new Point(getMaxX(), getMaxY()));
-		}
-		else if( pSide == Side.RIGHT)
-		{
-			return new Line(new Point(getMaxX(), getY()), new Point(getMaxX(), getMaxY()));
-		}
-		else
-		{
-			assert pSide == Side.LEFT;
-			return new Line(new Point(getX(), getY()), new Point(getX(), getMaxY()));
-		}
+		return y + height;
 	}
 	
 	/**
@@ -139,7 +56,7 @@ public class Rectangle
 	 */
 	public Rectangle translated(int pDeltaX, int pDeltaY)
 	{
-		return new Rectangle(aX + pDeltaX, aY + pDeltaY, aWidth, aHeight);
+		return new Rectangle(x + pDeltaX, y + pDeltaY, width, height);
 	}
 	
 	/**
@@ -150,8 +67,8 @@ public class Rectangle
 	public boolean contains(Point pPoint)
 	{
 		assert pPoint != null;
-		return pPoint.getX() >= aX && pPoint.getX() <= aX + aWidth &&
-				pPoint.getY() >= aY && pPoint.getY() <= aY + aHeight;
+		return pPoint.x() >= x && pPoint.x() <= maxX() &&
+				pPoint.y() >= y && pPoint.y() <= maxY();
 	}
 	
 	/**
@@ -162,17 +79,17 @@ public class Rectangle
 	public boolean contains(Rectangle pRectangle)
 	{
 		assert pRectangle != null;
-		return pRectangle.aX >= aX && pRectangle.aY >= aY &&
-				pRectangle.getMaxX() <= aX + aWidth &&
-				pRectangle.getMaxY() <= aY + aHeight;
+		return pRectangle.x >= x && pRectangle.y >= y &&
+				pRectangle.maxX() <= maxX() &&
+				pRectangle.maxY() <= maxY();
 	}
 	
 	/**
 	 * @return A point in the center of this rectangle.
 	 */
-	public Point getCenter()
+	public Point center()
 	{
-		return new Point( aX + aWidth/2, aY + aHeight/2);
+		return new Point( x + width/2, y + height/2);
 	}
 	
 	/**
@@ -183,29 +100,29 @@ public class Rectangle
 	public Rectangle add(Point pPoint)
 	{
 		assert pPoint != null;
-		int x = aX;
-		int y = aY;
-		int width = aWidth;
-		int height = aHeight;
-		if( pPoint.getX() < aX)
+		int currentX = x;
+		int currentY = y;
+		int currentWidth = width;
+		int currentHeight = height;
+		if( pPoint.x() < x)
 		{
-			x = pPoint.getX();
-			width = getMaxX() - pPoint.getX();
+			currentX = pPoint.x();
+			currentWidth = maxX() - pPoint.x();
 		}
-		else if( pPoint.getX() > getMaxX())
+		else if( pPoint.x() > maxX())
 		{
-			width = pPoint.getX() - aX;
+			currentWidth = pPoint.x() - x;
 		}
-		if( pPoint.getY() < aY )
+		if( pPoint.y() < y )
 		{
-			y = pPoint.getY();
-			height = getMaxY() - pPoint.getY();
+			currentY = pPoint.y();
+			currentHeight = maxY() - pPoint.y();
 		}
-		else if( pPoint.getY() > getMaxY())
+		else if( pPoint.y() > maxY())
 		{
-			height = pPoint.getY() - aY;
+			currentHeight = pPoint.y() - y;
 		}
-		return new Rectangle(x, y, width, height);			
+		return new Rectangle(currentX, currentY, currentWidth, currentHeight);			
 	}
 	
 	/**
@@ -216,55 +133,32 @@ public class Rectangle
 	public Rectangle add(Rectangle pRectangle)
 	{
 		assert pRectangle != null;
-		int x = Math.min(aX, pRectangle.aX);
-		int y = Math.min(aY, pRectangle.aY);
-		int maxX = Math.max(getMaxX(), pRectangle.getMaxX());
-		int maxY = Math.max(getMaxY(), pRectangle.getMaxY());
-		return new Rectangle(x, y, maxX - x, maxY-y);
+		int currentX = Math.min(x, pRectangle.x);
+		int currentY = Math.min(y, pRectangle.y);
+		int maxX = Math.max(maxX(), pRectangle.maxX());
+		int maxY = Math.max(maxY(), pRectangle.maxY());
+		return new Rectangle(currentX, currentY, maxX - currentX, maxY-currentY);
+	}
+	
+	/**
+	 * Get a rectangle of height pHeight with the same Y-coordinate as center
+	 * and same width.
+	 * 
+	 * @param pHeight The desired height.
+	 * @return A rectangle that is a vertical slice of this one.
+	 */
+	public Rectangle centerSlice(int pHeight)
+	{
+		assert pHeight >= 0;
+		assert pHeight <= height();
+		return new Rectangle(x(), center().y() - pHeight/2, width(), pHeight);
 	}
 	
 	/**
 	 * @return The top left corner of the rectangle.
 	 */
-	public Point getOrigin()
+	public Point origin()
 	{
-		return new Point(aX, aY);
-	}
-	
-	@Override
-	public int hashCode()
-	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + aHeight;
-		result = prime * result + aWidth;
-		result = prime * result + aX;
-		result = prime * result + aY;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object pObject)
-	{
-		if(this == pObject)
-		{
-			return true;
-		}
-		if(pObject == null)
-		{
-			return false;
-		}
-		if(getClass() != pObject.getClass())
-		{
-			return false;
-		}
-		Rectangle other = (Rectangle) pObject;
-		return aX == other.aX && aY == other.aY && aHeight == other.aHeight && aWidth == other.aWidth;
-	}
-	
-	@Override
-	public String toString()
-	{
-		return String.format("[x=%d, y=%d, w=%d, h=%d]", aX, aY, aWidth, aHeight);
+		return new Point(x, y);
 	}
 }

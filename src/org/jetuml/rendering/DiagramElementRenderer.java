@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -26,11 +26,10 @@ import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * A wrapper around a Diagram object that is able to compute the geometry
- * of the diagram and render it on a graphics context.
+ * of the diagram and render it on a rendering context.
  */
 public interface DiagramElementRenderer
 {
@@ -65,16 +64,8 @@ public interface DiagramElementRenderer
 	/**
      * Draws the element.
      * @param pElement The element to draw.
-     * @param pGraphics the graphics context
+     * @param pContext The rendering context on which to draw the element.
      * @pre pElement != null
 	 */
-   	void draw(DiagramElement pElement, GraphicsContext pGraphics);
-   	
-   	/**
-     * Draw selection handles around the element.
-     * @param pElement The target element
-     * @param pGraphics the graphics context
-     * @pre pElement != null && pGraphics != null
-	 */
-   	void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics);  	
+   	void draw(DiagramElement pElement, RenderingContext pContext);
 }

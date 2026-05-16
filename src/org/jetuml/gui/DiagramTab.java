@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.gui;
 
 import static java.lang.Math.max;
@@ -75,6 +74,7 @@ public class DiagramTab extends Tab implements MouseDraggedGestureHandler, KeyEv
 		
 		UserPreferences.instance().addBooleanPreferenceChangeHandler(aDiagramCanvas);
 		UserPreferences.instance().addIntegerPreferenceChangeHandler(aDiagramCanvas);
+		UserPreferences.instance().addStringPreferenceChangeHandler(aDiagramCanvas);
 		aDiagramCanvas.paintPanel();
 		
 		BorderPane layout = new BorderPane();
@@ -133,6 +133,7 @@ public class DiagramTab extends Tab implements MouseDraggedGestureHandler, KeyEv
 		UserPreferences.instance().removeBooleanPreferenceChangeHandler(aDiagramCanvas);
 		UserPreferences.instance().removeBooleanPreferenceChangeHandler((DiagramTabToolBar)((BorderPane)getContent()).getRight());
 		UserPreferences.instance().removeIntegerPreferenceChangeHandler(aDiagramCanvas);
+		UserPreferences.instance().removeStringPreferenceChangeHandler(aDiagramCanvas);
 	}
 
 	/**
@@ -290,27 +291,27 @@ public class DiagramTab extends Tab implements MouseDraggedGestureHandler, KeyEv
 	public void interactionTo(Rectangle pBounds, Direction pDirection)
 	{
 		// Compute point to reveal
-		int x = pBounds.getMaxX();
-		int y = pBounds.getMaxY();
+		int x = pBounds.maxX();
+		int y = pBounds.maxY();
 		
 		if( pDirection.isWesterly() ) // Going left, reverse coordinate
 		{
-			x = pBounds.getX(); 
+			x = pBounds.x(); 
 		}
 		if( pDirection.isNortherly() )	// Going up, reverse coordinate
 		{
-			y = pBounds.getY(); 
+			y = pBounds.y(); 
 		}
 		
 		// Special case: if the viewport is not large enough for the entire
 		// selection, the use will experience unsettling jitter. 
 		// We prevent this by not auto-scrolling
 		ViewportProjection projection = getViewportProjection();
-		if( pBounds.getWidth() <= projection.width() )
+		if( pBounds.width() <= projection.width() )
 		{
 			scrollPane().setHvalue(projection.getAdjustedHValueToRevealX(x));
 		}
-		if( pBounds.getHeight() <= projection.height() )
+		if( pBounds.height() <= projection.height() )
 		{
 			scrollPane().setVvalue(projection.getAdjustedVValueToRevealY(y));
 		}
@@ -388,5 +389,13 @@ public class DiagramTab extends Tab implements MouseDraggedGestureHandler, KeyEv
 	public Image createImage()
 	{
 		return aDiagramCanvas.createImage();
+	}
+	
+	/**
+	 * @return An SVG representation of this canvas.
+	 */
+	public String createSvgImage()
+	{
+		return aDiagramCanvas.createSvgImage();
 	}
 }	        

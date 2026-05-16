@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -42,12 +42,12 @@ import org.junit.jupiter.api.Test;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 public class TestTipDialog 
 {
@@ -106,7 +106,7 @@ public class TestTipDialog
 	public void testGetTipTitleAsTextNodeGivesExpectedContent()
 	{
 		String title = aTip1.getTitle();
-		Text titleNode = getTipTitleAsTextNode(aTip1);
+		Label titleNode = getTipTitleAsLabel(aTip1);
 		assertEquals(title, titleNode.getText());
 	}
 	
@@ -127,7 +127,7 @@ public class TestTipDialog
 		}
 		
 		Tip tip = TipLoader.loadTip(1);
-		Text titleNode = getTipTitleAsTextNode(tip);
+		Label titleNode = getTipTitleAsLabel(tip);
 		Font titleFont = titleNode.getFont();
 		assertEquals(fontSize, titleFont.getSize());
 	}
@@ -199,7 +199,7 @@ public class TestTipDialog
 		String content = "sample content";
 		TipElement tipElement = new TipElement(Media.TEXT, content);
 		
-		Text node = getTextTipElementAsTextNode(aTipDialog, tipElement);
+		Label node = getTextTipElementAsLabel(aTipDialog, tipElement);
 		
 		assertNotNull(node);
 	}
@@ -210,9 +210,9 @@ public class TestTipDialog
 		String content = "sample content";
 		TipElement tipElement = new TipElement(Media.TEXT, content);
 		
-		Text node = getTextTipElementAsTextNode(aTipDialog, tipElement);
+		Label node = getTextTipElementAsLabel(aTipDialog, tipElement);
 		
-		assertTrue(node.wrappingWidthProperty().isBound());
+		assertTrue(node.isWrapText());
 	}
 	
 	@Test
@@ -221,7 +221,7 @@ public class TestTipDialog
 		String content = "sample content";
 		TipElement tipElement = new TipElement(Media.TEXT, content);
 		
-		Text node = getTextTipElementAsTextNode(aTipDialog, tipElement);
+		Label node = getTextTipElementAsLabel(aTipDialog, tipElement);
 		
 		assertEquals(node.getText(), content);
 	}
@@ -329,13 +329,13 @@ public class TestTipDialog
 		}
 	}
 	
-	private static Text getTipTitleAsTextNode(Tip pTip)
+	private static Label getTipTitleAsLabel(Tip pTip)
 	{
 		try
 		{
-			Method method = TipDialog.class.getDeclaredMethod("getTipTitleAsTextNode", Tip.class);
+			Method method = TipDialog.class.getDeclaredMethod("getTipTitleAsLabel", Tip.class);
 			method.setAccessible(true);
-			return (Text) method.invoke(null, pTip);
+			return (Label) method.invoke(null, pTip);
 		}
 		catch(ReflectiveOperationException e)
 		{
@@ -418,13 +418,13 @@ public class TestTipDialog
 		}
 	}
 	
-	private static Text getTextTipElementAsTextNode(TipDialog pImplicitTipDialog, TipElement pTipElement)
+	private static Label getTextTipElementAsLabel(TipDialog pImplicitTipDialog, TipElement pTipElement)
 	{
 		try
 		{
-			Method method = TipDialog.class.getDeclaredMethod("getTextTipElementAsTextNode", TipElement.class);
+			Method method = TipDialog.class.getDeclaredMethod("getTextTipElementAsLabel", TipElement.class);
 			method.setAccessible(true);
-			return (Text) method.invoke(pImplicitTipDialog, pTipElement);
+			return (Label) method.invoke(pImplicitTipDialog, pTipElement);
 		}
 		catch(ReflectiveOperationException e)
 		{

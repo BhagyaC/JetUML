@@ -1,2 +1,2 @@
-theme: jekyll-theme-slate
-include: docs/CONTRIBUTING.md
+theme: jekyll-theme-cayman
+include: CONTRIBUTING.md, CODE_OF_CONDUCT.md

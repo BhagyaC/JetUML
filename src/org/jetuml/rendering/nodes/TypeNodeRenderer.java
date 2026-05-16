@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -22,19 +22,20 @@ package org.jetuml.rendering.nodes;
 
 import static org.jetuml.geom.GeomUtils.max;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.TypeNode;
+import org.jetuml.geom.Alignment;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-
-import javafx.scene.canvas.GraphicsContext;
+import org.jetuml.rendering.StringRenderer.Decoration;
 
 /**
  * An object to render a class or interface in a class diagram.
@@ -47,8 +48,19 @@ public class TypeNodeRenderer extends AbstractNodeRenderer
 	protected static final int DEFAULT_WIDTH = 100;
 	protected static final int DEFAULT_HEIGHT = 60;
 	protected static final int TOP_INCREMENT = 20;
-	private static final StringRenderer NAME_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.BOLD, TextDecoration.PADDED);
-	private static final StringRenderer STRING_VIEWER = StringRenderer.get(Alignment.TOP_LEFT, TextDecoration.PADDED);
+	private static final int TOP_MARGIN = 5;
+	private static final int HORIZONTAL_PADDING = 7;
+	private static final int VERTICAL_PADDING = 6;
+	private static final StringRenderer TYPE_NAME_RENDERER = new StringRenderer(Alignment.CENTER, Decoration.BOLD);
+	private static final StringRenderer ITALIC_NAME_RENDERER = new StringRenderer(
+			Alignment.CENTER, Decoration.BOLD, Decoration.ITALIC);
+	private static final StringRenderer STRING_RENDERER = new StringRenderer(Alignment.LEFT);
+	private static final StringRenderer UNDERLINING_STRING_RENDERER = new StringRenderer(
+			Alignment.LEFT, Decoration.UNDERLINED);
+	private static final StringRenderer ITALIC_STRING_RENDERER = new StringRenderer(
+			Alignment.LEFT, Decoration.ITALIC);
+	private static final String ITALIC_MARKUP = "/";
+	private static final String UNDERLINE_MARKUP = "_";
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -64,38 +76,155 @@ public class TypeNodeRenderer extends AbstractNodeRenderer
 		return new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	}
 	
+	private static int lineHeight()
+	{
+		return STRING_RENDERER.getDimension("|").height();
+	}
+	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{	
 		assert pElement instanceof TypeNode;
 		TypeNode node = (TypeNode) pElement;
 		final Rectangle bounds = getBounds(pElement);
-		final int attributeHeight = attributeBoxHeight(node);
-		final int methodHeight = methodBoxHeight(node);
-		final int nameHeight = nameBoxHeight(node, attributeHeight, methodHeight);
+		final int attributeBoxHeight = attributeBoxHeight(node);
+		final int methodBoxHeight = methodBoxHeight(node);
+		final int nameBoxHeight = nameBoxHeight(node, attributeBoxHeight, methodBoxHeight);
 
-		RenderingUtils.drawRectangle(pGraphics, bounds);	
-		NAME_VIEWER.draw(getNameText(node), pGraphics, new Rectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), nameHeight));
+		pContext.drawRectangle(bounds, ColorScheme.get().fill(), ColorScheme.get().stroke(),
+				Optional.of(ColorScheme.get().dropShadow()));	
+		drawName(getNameText(node), new Rectangle(bounds.x(), bounds.y(), bounds.width(), nameBoxHeight), pContext);
 		
-		if( attributeHeight > 0 )
+		if( attributeBoxHeight > 0 )
 		{
-			final int splitY = bounds.getY() + nameHeight;
-			RenderingUtils.drawLine(pGraphics, bounds.getX(), splitY, bounds.getMaxX(), splitY, LineStyle.SOLID);
-			STRING_VIEWER.draw(node.getAttributes(), pGraphics, new Rectangle(bounds.getX(), splitY, bounds.getWidth(), attributeHeight));
-			if( methodHeight > 0 )
+			final int splitY = bounds.y() + nameBoxHeight;
+			pContext.strokeLine(bounds.x(), splitY, bounds.maxX(), splitY, 
+					ColorScheme.get().stroke(),
+					LineStyle.SOLID);
+			drawAttribute(node.getAttributes(), new Rectangle(bounds.x(), splitY, bounds.width(), attributeBoxHeight), pContext);
+			if( methodBoxHeight > 0 )
 			{
-				final int splitY2 = splitY + attributeHeight;
-				RenderingUtils.drawLine(pGraphics, bounds.getX(), splitY2, bounds.getMaxX(), splitY2, LineStyle.SOLID);
-				STRING_VIEWER.draw(node.getMethods(), pGraphics, 
-						new Rectangle(bounds.getX(), splitY2, bounds.getWidth(), methodHeight));
+				final int splitY2 = splitY + attributeBoxHeight;
+				pContext.strokeLine(bounds.x(), splitY2, bounds.maxX(), splitY2, 
+						ColorScheme.get().stroke(),
+						LineStyle.SOLID);
+				drawMethod(node.getMethods(), new Rectangle(bounds.x(), splitY2, bounds.width(), methodBoxHeight), pContext);
 			}
 		}
-		else if( methodHeight > 0 )
+		else if( methodBoxHeight > 0 )
 		{
-			final int splitY = bounds.getY() + nameHeight;
-			RenderingUtils.drawLine(pGraphics, bounds.getX(), splitY, bounds.getMaxX(), splitY, LineStyle.SOLID);
-			STRING_VIEWER.draw(node.getMethods(), pGraphics, new Rectangle(bounds.getX(), splitY, bounds.getWidth(), methodHeight));
+			final int splitY = bounds.y() + nameBoxHeight;
+			pContext.strokeLine(bounds.x(), splitY, bounds.maxX(), splitY, 
+					ColorScheme.get().stroke(),
+					LineStyle.SOLID);
+			drawMethod(node.getMethods(), new Rectangle(bounds.x(), splitY, bounds.width(), methodBoxHeight), pContext);
+		}
+		lineHeight();
+	}
+	
+	/*
+	 * @param pName The possibly multi-line text to draw in the name box.
+	 * @param pBounds The bounds of the name box.
+	 * @param pContext The rendering context
+	 */
+	private static void drawName(String pName, Rectangle pBounds, RenderingContext pContext)
+	{
+		String[] nameByLine = pName.trim().split("\n");
+		int startY = pBounds.center().y() - lineHeight() * nameByLine.length / 2;
+		
+		for (String line : nameByLine)
+		{
+			Rectangle bounds = new Rectangle(pBounds.x(), startY, pBounds.width(), lineHeight());
+			if( containsMarkup(line, ITALIC_MARKUP) )
+			{
+				ITALIC_NAME_RENDERER.draw(removeMarkup(line), bounds, pContext);
+			}
+			else
+			{
+				TYPE_NAME_RENDERER.draw(line, bounds, pContext);
+			}
+			startY += lineHeight();
+		}
+	}
+	
+	/*
+	 * @param pText The possibly multi-line text to draw in the attribute box.
+	 * @param pBounds The bounds of the attribute box.
+	 * @param pContext The rendering context
+	 */
+	private static void drawAttribute(String pText, Rectangle pBounds, RenderingContext pContext)
+	{
+		String[] attributesByLine = pText.trim().split("\n");
+		int lineSpacing = TOP_MARGIN;
+		
+		for( String attribute : attributesByLine )
+		{
+			if( containsMarkup(attribute, UNDERLINE_MARKUP) )
+			{
+				UNDERLINING_STRING_RENDERER.draw(removeMarkup(attribute), 
+						new Rectangle(pBounds.x() + HORIZONTAL_PADDING, pBounds.y() + lineSpacing, 
+								pBounds.width(), 
+								lineHeight()), pContext);
+			}
+			else
+			{
+				STRING_RENDERER.draw(attribute, 
+						new Rectangle(pBounds.x() + HORIZONTAL_PADDING, pBounds.y() + lineSpacing, 
+								pBounds.width(), 
+								lineHeight()), pContext);
+			}
+			lineSpacing += lineHeight();
 		}	
+	}
+	
+	/*
+	 * @param pText The possibly multi-line text to draw in the method box.
+	 * @param pBounds The bounds of the method box.
+	 * @param pContext The rendering context
+	 */
+	private static void drawMethod(String pText, Rectangle pBounds, RenderingContext pContext)
+	{
+		String[] methodsByLine = pText.trim().split("\n");
+		int lineSpacing = TOP_MARGIN;
+		
+		for( String method : methodsByLine )
+		{
+			if( containsMarkup(method, UNDERLINE_MARKUP) )
+			{
+				UNDERLINING_STRING_RENDERER.draw(removeMarkup(method), 
+						new Rectangle(pBounds.x() + HORIZONTAL_PADDING, pBounds.y() + lineSpacing, 
+								pBounds.width(), 
+								lineHeight()), pContext);
+			}
+			else if( containsMarkup(method, ITALIC_MARKUP) )
+			{
+				ITALIC_STRING_RENDERER.draw(removeMarkup(method), 
+						new Rectangle(pBounds.x() + HORIZONTAL_PADDING, pBounds.y() + lineSpacing, 
+								pBounds.width(), 
+								lineHeight()), pContext);
+			}
+			else
+			{
+				STRING_RENDERER.draw(method, 
+						new Rectangle(pBounds.x() + HORIZONTAL_PADDING, pBounds.y() + lineSpacing, 
+								pBounds.width(), 
+								lineHeight()), pContext);
+			}
+			lineSpacing += lineHeight();
+		}	
+	}
+	
+	private static boolean containsMarkup(String pText, String pMarkup)
+	{
+		return pText.length() > 2 && pText.startsWith(pMarkup) && pText.endsWith(pMarkup);
+	}
+	
+	private static String removeMarkup(String pString)
+	{
+		StringBuilder result = new StringBuilder(pString);
+		result.deleteCharAt(0);
+		result.deleteCharAt(result.length() - 1);
+		return result.toString();
 	}
 	
 	private static int attributeBoxHeight(TypeNode pNode)
@@ -129,7 +258,8 @@ public class TypeNodeRenderer extends AbstractNodeRenderer
 		Dimension result = Dimension.NULL;
 		if( pString.length() > 0 )
 		{
-			result = STRING_VIEWER.getDimension(pString);
+			Dimension dimension = STRING_RENDERER.getDimension(pString);
+			result = new Dimension(dimension.width() + 2 * HORIZONTAL_PADDING, dimension.height() + 2 * VERTICAL_PADDING);
 		}
 		return result;
 	}
@@ -139,7 +269,8 @@ public class TypeNodeRenderer extends AbstractNodeRenderer
 		Dimension result = Dimension.NULL;
 		if( pString.length() > 0 )
 		{
-			result = NAME_VIEWER.getDimension(pString);
+			Dimension dimension = TYPE_NAME_RENDERER.getDimension(pString);
+			result = new Dimension(dimension.width() + 2 * HORIZONTAL_PADDING, dimension.height());
 		}
 		return result;
 	}
@@ -157,7 +288,7 @@ public class TypeNodeRenderer extends AbstractNodeRenderer
 		Dimension methodDimension = textDimensions(node.getMethods());
 		int width = max(DEFAULT_WIDTH, nameDimension.width(), attributeDimension.width(), methodDimension.width());
 		int height = attributeHeight + methodHeight + nameHeight;
-		return new Rectangle(node.position().getX(), node.position().getY(), width, height);
+		return new Rectangle(node.position().x(), node.position().y(), width, height);
 	}
 	
 	/**

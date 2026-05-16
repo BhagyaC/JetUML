@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -25,8 +25,8 @@ import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Direction;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
-import org.jetuml.geom.Side;
 import org.jetuml.rendering.DiagramElementRenderer;
+import org.jetuml.rendering.Side;
 
 /**
  * Abstract strategy that describes objects that can draw and

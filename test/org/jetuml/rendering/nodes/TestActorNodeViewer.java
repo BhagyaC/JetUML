@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,25 +20,27 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jetuml.JavaFXLoader;
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
+import org.jetuml.application.UserPreferences.StringPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.nodes.ActorNode;
 import org.jetuml.geom.Point;
-import org.jetuml.testutils.GeometryUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 public class TestActorNodeViewer
 {
+	private static String userDefinedFontName;
 	private static int userDefinedFontSize;
 	private ActorNode aNode; 
 	private final ActorNodeRenderer aViewer = new ActorNodeRenderer(DiagramType.newRendererInstanceFor(new Diagram(DiagramType.USECASE)));
@@ -46,8 +48,10 @@ public class TestActorNodeViewer
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontName = UserPreferences.instance().getString(UserPreferences.StringPreference.fontName);
+		UserPreferences.instance().setString(StringPreference.fontName, "System");
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, 12);
 		JavaFXLoader.load();
 	}
 	
@@ -60,6 +64,7 @@ public class TestActorNodeViewer
 	@AfterAll
 	public static void restorePreferences()
 	{
+		UserPreferences.instance().setString(StringPreference.fontName, userDefinedFontName);
 		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
 	}
 	
@@ -67,26 +72,27 @@ public class TestActorNodeViewer
 	public void testGetBounds_NoName()
 	{
 		aNode.setName("");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(48, aViewer.getBounds(aNode).getWidth());
-		assertEquals(64, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(28, aViewer.getBounds(aNode).width());
+		assertEquals(50, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
 	public void testGetBounds_ShortName()
 	{
 		aNode.setName("X");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(48, aViewer.getBounds(aNode).getWidth());
-		assertTrue(aViewer.getBounds(aNode).getHeight() > 64);
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(28, aViewer.getBounds(aNode).width());
+		assertTrue(aViewer.getBounds(aNode).height() > 64);
 	}
 	
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	public void testGetBounds_LongName()
 	{
 		aNode.setName("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-		assertEquals(new Point(GeometryUtils.osDependent(-153,-166,-166),0), aViewer.getBounds(aNode).getOrigin());
-		assertTrue(aViewer.getBounds(aNode).getWidth() > 48);
-		assertTrue(aViewer.getBounds(aNode).getHeight() > 64);
+		assertEquals(new Point(-156,0), aViewer.getBounds(aNode).origin());
+		assertTrue(aViewer.getBounds(aNode).width() > 48);
+		assertTrue(aViewer.getBounds(aNode).height() > 64);
 	}
 }

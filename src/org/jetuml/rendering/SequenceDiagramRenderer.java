@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -41,14 +41,11 @@ import org.jetuml.diagram.nodes.CallNode;
 import org.jetuml.diagram.nodes.ImplicitParameterNode;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
+import org.jetuml.geom.Alignment;
 import org.jetuml.rendering.edges.CallEdgeRenderer;
 import org.jetuml.rendering.edges.ReturnEdgeRenderer;
 import org.jetuml.rendering.nodes.CallNodeRenderer;
 import org.jetuml.rendering.nodes.ImplicitParameterNodeRenderer;
-
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * The renderer for sequence diagrams. The implementation of this renderer assumes
@@ -57,11 +54,8 @@ import javafx.scene.canvas.GraphicsContext;
  */
 public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 { 
-	private static final int CALL_DROP = 10;
-
 	/*
-	 * Number of pixels to drop the contructor activation box from. 
-	 */
+	 * Number of pixels to drop the contructor activation box from. */
 	private static final int CONSTRUCTOR_DROP = 5;
 
 	/* Initial position of the lifeline of an object if it is not the target of a constructor call.  */
@@ -83,7 +77,9 @@ public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 	
 	/* Constants to test the height of the font. */
 	private static final String TEST_STRING = "|";
-	private static final StringRenderer NODE_GAP_TESTER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	
+	/* Renderer used only for measuring string height */
+	private static final StringRenderer STRING_METRIC = new StringRenderer(Alignment.LEFT);
 
 	private final Map<Node, Integer> aCallNodeTopCoordinate = new IdentityHashMap<>();
 	private final Map<Node, Integer> aCallNodeBottomCoordinate = new IdentityHashMap<>();
@@ -102,10 +98,10 @@ public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 	}
 	
 	@Override
-	public void draw(GraphicsContext pGraphics)
+	public void draw(RenderingContext pContext)
 	{
 		layout();
-		super.draw(pGraphics); 
+		super.draw(pContext); 
 	}
 	
 	/*
@@ -335,9 +331,9 @@ public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 	 * @param pNode An implicit parameter node.
 	 * @return The x coordinate of the center of the node.
 	 */
-	public int getCenterXCoordinate(ImplicitParameterNode pNode)
+	public static int getCenterXCoordinate(ImplicitParameterNode pNode)
 	{
-		return ((ImplicitParameterNodeRenderer)rendererFor(ImplicitParameterNode.class)).getCenterXCoordinate(pNode);
+		return ImplicitParameterNodeRenderer.getCenterXCoordinate(pNode);
 	}
 	
 	@Override
@@ -392,20 +388,10 @@ public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 	/*
 	 * @return The number of pixels to drop the call edges from the current position in the call sequence.
 	 * Takes into account the size of the font to ensure labels on call edges do not overlap.
-	 * 
 	 */
-	private int getDropDistance()
+	private static int getDropDistance()
 	{
-		int shift = NODE_GAP_TESTER.getDimension(TEST_STRING).height() / 3;
-		// Only apply shift if necessary
-		if ( shift < CALL_DROP )
-		{
-			return DROP_MIN;
-		}
-		else
-		{
-			return DROP_MIN + CALL_DROP;
-		}
+		return Math.max(DROP_MIN, STRING_METRIC.getDimension(TEST_STRING).height());
 	}
 	
 	/**
@@ -442,7 +428,7 @@ public final class SequenceDiagramRenderer extends AbstractDiagramRenderer
 		{
 			// We delete the start node of pEdge if it does not have any caller and only makes calls to the 
 			// object being constructed.
-			if ( getCaller(pEdge.start()).isEmpty() && 
+			if( getCaller(pEdge.start()).isEmpty() && 
 					onlyCallsToASingleImplicitParameterNode(pEdge.start(), pEdge.end().getParent()) )
 			{
 				return Optional.of(pEdge.start());

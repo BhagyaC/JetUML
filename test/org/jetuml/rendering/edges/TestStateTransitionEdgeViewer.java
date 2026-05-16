@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,7 +20,6 @@
  *******************************************************************************/
 package org.jetuml.rendering.edges;
 
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -28,6 +27,7 @@ import java.lang.reflect.Method;
 
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
+import org.jetuml.application.UserPreferences.StringPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.edges.StateTransitionEdge;
@@ -39,6 +39,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestStateTransitionEdgeViewer 
 {
+	private static String userDefinedFontName;
 	private static int userDefinedFontSize;
 
 	private StateNode aStateNode1 = new StateNode();
@@ -50,13 +51,16 @@ public class TestStateTransitionEdgeViewer
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontName = UserPreferences.instance().getString(UserPreferences.StringPreference.fontName);
+		UserPreferences.instance().setString(StringPreference.fontName, UserPreferences.DEFAULT_FONT_NAME);
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 	}
 	
 	@AfterAll
 	public static void restorePreferences()
 	{
+		UserPreferences.instance().setString(StringPreference.fontName, userDefinedFontName);
 		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
 	}
 	

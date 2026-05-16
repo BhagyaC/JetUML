@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -27,7 +27,7 @@ package org.jetuml.gui.tips;
  */
 enum TipFieldName
 {
-	TITLE, CONTENT;
+	TITLE, CONTENT, TAGS;
 	
 	public String asString()
 	{

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -28,9 +28,9 @@ import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
-import org.jetuml.geom.Side;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.GraphicsRenderingContext;
+import org.jetuml.rendering.Side;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -80,18 +80,12 @@ public abstract class AbstractNodeRenderer implements NodeRenderer
 	}
 	
 	@Override
-	public void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics)
-	{
-		ToolGraphics.drawHandles(pGraphics, getBounds(pElement));		
-	}
-	
-	@Override
 	public Canvas createIcon(DiagramType pDiagramType, DiagramElement pElement)
 	{
 		Node node = (Node) pElement;
 		Rectangle bounds = getBounds(node);
-		int width = bounds.getWidth();
-		int height = bounds.getHeight();
+		int width = bounds.width();
+		int height = bounds.height();
 		double scaleX = (BUTTON_SIZE - OFFSET)/ (double) width;
 		double scaleY = (BUTTON_SIZE - OFFSET)/ (double) height;
 		double scale = Math.min(scaleX, scaleY);
@@ -101,7 +95,7 @@ public abstract class AbstractNodeRenderer implements NodeRenderer
 		graphics.translate(Math.max((height - width) / 2, 0), Math.max((width - height) / 2, 0));
 		graphics.setFill(Color.WHITE);
 		graphics.setStroke(Color.BLACK);
-		draw(node, canvas.getGraphicsContext2D());
+		draw(node, new GraphicsRenderingContext(canvas.getGraphicsContext2D()));
 		return canvas;
 	}
 	
@@ -139,6 +133,6 @@ public abstract class AbstractNodeRenderer implements NodeRenderer
 	public Line getFace(Node pNode, Side pSide) 
 	{
 		assert pNode != null && pSide != null;
-		return getBounds(pNode).getSide(pSide);
+		return pSide.getCorrespondingLine(getBounds(pNode));
 	}
 }

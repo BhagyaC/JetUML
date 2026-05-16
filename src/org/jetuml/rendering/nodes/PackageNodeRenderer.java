@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -80,8 +80,8 @@ public final class PackageNodeRenderer extends AbstractPackageNodeRenderer
 		{
 			return pNode.position();
 		}
-		return new Point(pChildrenBounds.get().getX() - PADDING, 
-				pChildrenBounds.get().getY() - PADDING - getTopDimension(pNode).height());
+		return new Point(pChildrenBounds.get().x() - PADDING, 
+				pChildrenBounds.get().y() - PADDING - getTopDimension(pNode).height());
 	}
 	
 	@Override
@@ -90,7 +90,7 @@ public final class PackageNodeRenderer extends AbstractPackageNodeRenderer
 		Optional<Rectangle> childrenBounds = getChildrenBounds(pNode);
 		Point position = getPosition(pNode, childrenBounds);
 		Dimension topDimension = getTopDimension(pNode);
-		return new Rectangle(position.getX(), position.getY(), topDimension.width(), topDimension.height());
+		return new Rectangle(position.x(), position.y(), topDimension.width(), topDimension.height());
 	}
 	
 	@Override
@@ -106,13 +106,13 @@ public final class PackageNodeRenderer extends AbstractPackageNodeRenderer
 		
 		if( childrenBounds.isPresent() )
 		{
-			width = max( width, childrenBounds.get().getMaxX() + PADDING - position.getX());
-			height = max( height, childrenBounds.get().getMaxY() + PADDING - position.getY() - topDimension.height());
+			width = max( width, childrenBounds.get().maxX() + PADDING - position.x());
+			height = max( height, childrenBounds.get().maxY() + PADDING - position.y() - topDimension.height());
 		}
 		
 		width = max( width, topDimension.width()+ (DEFAULT_WIDTH - DEFAULT_TOP_WIDTH));
 		
-		return new Rectangle(position.getX(), position.getY() + topDimension.height(), 
+		return new Rectangle(position.x(), position.y() + topDimension.height(), 
 				width, height);
 	}
 }

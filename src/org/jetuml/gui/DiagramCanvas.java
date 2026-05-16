@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -34,6 +34,8 @@ import org.jetuml.application.UserPreferences.BooleanPreference;
 import org.jetuml.application.UserPreferences.BooleanPreferenceChangeHandler;
 import org.jetuml.application.UserPreferences.IntegerPreference;
 import org.jetuml.application.UserPreferences.IntegerPreferenceChangeHandler;
+import org.jetuml.application.UserPreferences.StringPreference;
+import org.jetuml.application.UserPreferences.StringPreferenceChangeHandler;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.DiagramType;
@@ -46,26 +48,29 @@ import org.jetuml.diagram.builder.DiagramOperationProcessor;
 import org.jetuml.diagram.nodes.FieldNode;
 import org.jetuml.diagram.nodes.PackageNode;
 import org.jetuml.diagram.validator.DiagramValidator;
+import org.jetuml.diagram.validator.Violation;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Direction;
+import org.jetuml.geom.GridUtils;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
-import org.jetuml.rendering.Grid;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.AccessoriesRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
+import org.jetuml.rendering.RenderingContext;
+import org.jetuml.rendering.SvgRenderingContext;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 
 /**
  * A canvas on which to view diagrams.
  */
-public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanPreferenceChangeHandler, IntegerPreferenceChangeHandler
+public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanPreferenceChangeHandler, IntegerPreferenceChangeHandler,
+StringPreferenceChangeHandler
 {	
 	private static final double LINE_WIDTH = 0.6;
 	/* The number of pixels to leave around a diagram when the canvas size
@@ -81,6 +86,8 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	private final DiagramValidator aDiagramValidator;
 	private final DiagramTabToolBar aToolBar;
 	private MouseDraggedGestureHandler aHandler;
+	private final RenderingContext aRenderingContext;
+	private final AccessoriesRenderer aAccessoriesRenderer;
 	
 	private enum DragMode 
 	{ DRAG_NONE, DRAG_MOVE, DRAG_RUBBERBAND, DRAG_LASSO }
@@ -110,16 +117,26 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 		aDiagramBuilder = pDiagramBuilder;
 		aDiagramValidator = pDiagramValidator;
 		aMoveTracker = new MoveTracker(aDiagramBuilder.renderer()::getBounds);
-		Dimension dimension = getDiagramCanvasWidth(pDiagramBuilder.diagram());
+		Dimension dimension = getDiagramCanvasWidth();
 		setWidth(dimension.width());
 		setHeight(dimension.height());
-		aDiagramBuilder.setCanvasDimension(new Dimension((int) getWidth(), (int)getHeight()));
-		getGraphicsContext2D().setLineWidth(LINE_WIDTH);
-		getGraphicsContext2D().setFill(Color.WHITE);
+		aDiagramBuilder.setCanvasDimension(new Dimension(width(), height()));
+		aRenderingContext = new GraphicsRenderingContext(getGraphicsContext2D());
+		aAccessoriesRenderer = new AccessoriesRenderer(aRenderingContext);
 		aHandler = pHandler;
 		setOnMousePressed(this::mousePressed);
 		setOnMouseReleased(this::mouseReleased);
 		setOnMouseDragged(this::mouseDragged);
+	}
+	
+	private int width()
+	{
+		return (int) getWidth();
+	}
+	
+	private int height()
+	{
+		return (int) getHeight();
 	}
 	
 	/**
@@ -187,11 +204,11 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	 */
 	private static void shiftElements(Iterable<DiagramElement> pElements, int pShiftAmount) 
 	{
-		for (DiagramElement element: pElements) 
+		for(DiagramElement element: pElements) 
 		{
-			if(element instanceof Node) 
+			if(element instanceof Node node) 
 			{
-				((Node)element).translate(pShiftAmount, pShiftAmount);
+				node.translate(pShiftAmount, pShiftAmount);
 			}
 		}
 	}
@@ -204,7 +221,7 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 		Optional<DiagramElement> edited = getLastSelected();
 		if( edited.isPresent() )
 		{
-			PropertyEditorDialog dialog = new PropertyEditorDialog((Stage)getScene().getWindow(), 
+			PropertyEditorDialog dialog = new PropertyEditorDialog( ((EditorFrame) getScene().getRoot()).getDialogStage(), 
 					edited.get(), ()-> paintPanel());
 			
 			CompoundOperation operation = dialog.show();
@@ -235,18 +252,35 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	 */
 	public void paintPanel()
 	{
-		GraphicsContext context = getGraphicsContext2D();
-		context.setFill(Color.WHITE); 
-		context.fillRect(0, 0, getWidth(), getHeight());
+		Rectangle area = new Rectangle(0, 0, width(), height());
+		aRenderingContext.drawRectangle(area, ColorScheme.get().background(), 
+				ColorScheme.get().background(), Optional.empty());
 		if(UserPreferences.instance().getBoolean(BooleanPreference.showGrid)) 
 		{
-			Grid.draw(context, new Rectangle(0, 0, (int) getWidth(), (int) getHeight()));
+			aAccessoriesRenderer.drawGrid(area);
 		}
-		aDiagramBuilder.renderer().draw(context);
+		aDiagramBuilder.renderer().draw(aRenderingContext);
 		synchronizeSelectionModel();
-		aSelected.forEach( selected -> aDiagramBuilder.renderer().drawSelectionHandles(selected, context));
-		aRubberband.ifPresent( rubberband -> ToolGraphics.drawRubberband(context, rubberband));
-		aLasso.ifPresent( lasso -> ToolGraphics.drawLasso(context, lasso));
+		drawHandlesOnSelectedEdges();
+		drawHandlesOnSelectedNodes();
+		aRubberband.ifPresent( rubberband -> aAccessoriesRenderer.drawRubberband(rubberband));
+		aLasso.ifPresent( lasso -> aAccessoriesRenderer.drawLasso(lasso));
+	}
+	
+	private void drawHandlesOnSelectedEdges()
+	{
+		aSelected.stream()
+		.filter(Edge.class::isInstance)
+		.map(Edge.class::cast)
+		.forEach(edge -> aAccessoriesRenderer.drawHandles(aDiagramBuilder.renderer().getConnectionPoints(edge)));
+	}
+	
+	private void drawHandlesOnSelectedNodes()
+	{
+		aSelected.stream()
+		.filter(Node.class::isInstance)
+		.map(Node.class::cast)
+		.forEach(node -> aAccessoriesRenderer.drawHandles(aDiagramBuilder.renderer().getBounds(node)));
 	}
 	
 	/**
@@ -349,7 +383,7 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	@Override
 	public void booleanPreferenceChanged(BooleanPreference pPreference)
 	{
-		if( pPreference == BooleanPreference.showGrid )
+		if( pPreference == BooleanPreference.showGrid || pPreference == BooleanPreference.darkMode )
 		{
 			paintPanel();
 		}
@@ -358,7 +392,16 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	@Override
 	public void integerPreferenceChanged(IntegerPreference pPreference) 
 	{
-		if ( pPreference == IntegerPreference.fontSize )
+		if( pPreference == IntegerPreference.fontSize )
+		{
+			paintPanel();
+		}
+	}
+	
+	@Override
+	public void stringPreferenceChanged(StringPreference pPreference) 
+	{
+		if( pPreference == StringPreference.fontName )
 		{
 			paintPanel();
 		}
@@ -369,12 +412,12 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	 * the preferred dimension. Otherwise, grow the dimensions to accommodate
 	 * the diagram.
 	 */
-	private Dimension getDiagramCanvasWidth(Diagram pDiagram)
+	private Dimension getDiagramCanvasWidth()
 	{
 		Rectangle bounds = aDiagramBuilder.renderer().getBounds();
 		return new Dimension(
-				Math.max(getPreferredDiagramWidth(), bounds.getMaxX() + DIMENSION_BUFFER),
-				Math.max(getPreferredDiagramHeight(), bounds.getMaxY() + DIMENSION_BUFFER));
+				Math.max(getPreferredDiagramWidth(), bounds.maxX() + DIMENSION_BUFFER),
+				Math.max(getPreferredDiagramHeight(), bounds.maxY() + DIMENSION_BUFFER));
 	}
 	
 	private static int getPreferredDiagramWidth()
@@ -409,16 +452,16 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	
 	private Line computeRubberband()
 	{
-		return new Line(new Point(aMouseDownPoint.getX(), aMouseDownPoint.getY()), 
-				new Point(aLastMousePoint.getX(), aLastMousePoint.getY()));
+		return new Line(new Point(aMouseDownPoint.x(), aMouseDownPoint.y()), 
+				new Point(aLastMousePoint.x(), aLastMousePoint.y()));
 	}
 	
 	private Rectangle computeLasso()
 	{
-		return new Rectangle(Math.min(aMouseDownPoint.getX(), aLastMousePoint.getX()), 
-						     Math.min(aMouseDownPoint.getY(), aLastMousePoint.getY()), 
-						     Math.abs(aMouseDownPoint.getX() - aLastMousePoint.getX()) , 
-						     Math.abs(aMouseDownPoint.getY() - aLastMousePoint.getY()));
+		return new Rectangle(Math.min(aMouseDownPoint.x(), aLastMousePoint.x()), 
+						     Math.min(aMouseDownPoint.y(), aLastMousePoint.y()), 
+						     Math.abs(aMouseDownPoint.x() - aLastMousePoint.x()) , 
+						     Math.abs(aMouseDownPoint.y() - aLastMousePoint.y()));
 	}
 	
 	private static Point getMousePoint(MouseEvent pEvent)
@@ -434,7 +477,7 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 		if(!element.isPresent())
 		{
 			element = aDiagramBuilder.renderer()
-					.selectableNodeAt(new Point(mousePoint.getX(), mousePoint.getY())); 
+					.selectableNodeAt(new Point(mousePoint.x(), mousePoint.y())); 
 		}
 		return element;
 	}
@@ -527,9 +570,11 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	{
 		assert aToolBar.getCreationPrototype().isPresent();
 		Node newNode = ((Node) aToolBar.getCreationPrototype().get()).clone();
-		Point point = Grid.snapped(getMousePoint(pEvent));
-		aProcessor.executeNewOperation(aDiagramBuilder.createAddNodeOperation(newNode, new Point(point.getX(), point.getY())));
-		if (aDiagramValidator.isValid())
+		Point point = GridUtils.snapped(getMousePoint(pEvent));
+		aProcessor.executeNewOperation(aDiagramBuilder.createAddNodeOperation(newNode, new Point(point.x(), point.y())));
+		Optional<Violation> violation = aDiagramValidator.validate();
+		
+		if(violation.isEmpty())
 		{
 			setSelection(newNode);
 			diagram().placeOnTop(newNode);
@@ -539,11 +584,11 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 				editSelected();
 			}
 		}
-
 		else
 		{
 			aProcessor.undoLastExecutedOperation();
 			handleSelection(pEvent);
+			NotificationService.instance().spawnNotification(violation.get().description(), ToastNotification.Type.ERROR);
 		}
 	}
 
@@ -571,7 +616,7 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 			handleSingleClick(pEvent);
 		}
 		Point point = getMousePoint(pEvent);
-		aLastMousePoint = new Point(point.getX(), point.getY()); 
+		aLastMousePoint = new Point(point.x(), point.y()); 
 		aMouseDownPoint = aLastMousePoint;
 		paintPanel();
 	}
@@ -607,25 +652,25 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 			// Pick one node in the selection model, arbitrarily
 			Node firstSelected = selectedNodes.next();
 			Rectangle bounds = aDiagramBuilder.renderer().getBounds(firstSelected);
-			Rectangle snappedPosition = Grid.snapped(bounds);
+			Rectangle snappedPosition = GridUtils.snapped(bounds);
 			
-			int dx = snappedPosition.getX() - bounds.getX();
-			int dy = snappedPosition.getY() - bounds.getY();
+			int dx = snappedPosition.x() - bounds.x();
+			int dy = snappedPosition.y() - bounds.y();
 			
 			//ensure the bounds of the entire selection are not outside the walls of the canvas
-			if (entireBounds.getMaxX() + dx > getWidth()) 
+			if(entireBounds.maxX() + dx > width()) 
 			{
 				dx -= GRID_SIZE;
 			}
-			else if (entireBounds.getX() + dx <= 0) 
+			else if(entireBounds.x() + dx <= 0) 
 			{
 				dx += GRID_SIZE;
 			}
-			if (entireBounds.getMaxY() + dy > getHeight()) 
+			if(entireBounds.maxY() + dy > height()) 
 			{
 				dy -= GRID_SIZE;
 			}
-			else if (entireBounds.getY() <= 0) 
+			else if(entireBounds.y() <= 0) 
 			{
 				dy += GRID_SIZE;
 			}
@@ -645,10 +690,12 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 		if(pMousePoint.distance(aMouseDownPoint) > CONNECT_THRESHOLD )
 		{
 			aProcessor.executeNewOperation(aDiagramBuilder.createAddEdgeOperation(newEdge, aMouseDownPoint, pMousePoint));
-
-			if( !aDiagramValidator.isValid() )
+			Optional<Violation> violation = aDiagramValidator.validate();
+			
+			if( violation.isPresent() )
 			{
 				aProcessor.undoLastExecutedOperation();
+				NotificationService.instance().spawnNotification(violation.get().description(), ToastNotification.Type.ERROR);
 			}
 			else
 			{
@@ -705,18 +752,18 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	{
 		assert !aSelected.isEmpty();
 		
-		int dx = pMousePoint.getX() - aLastMousePoint.getX();
-		int dy = pMousePoint.getY() - aLastMousePoint.getY();
+		int dx = pMousePoint.x() - aLastMousePoint.x();
+		int dy = pMousePoint.y() - aLastMousePoint.y();
 		
 		// Perform the move without painting it
 		selectedNodes().forEach(selected -> selected.translate(dx, dy));
 		
 		// If this translation results in exceeding the canvas bounds, roll back.
 		Rectangle bounds = aDiagramBuilder.renderer().getBoundsIncludingParents(aSelected);
-		int dxCorrection = Math.max(-bounds.getX(), 0) 
-				+ Math.min((int)getWidth() - bounds.getMaxX(), 0);
-		int dyCorrection = Math.max(-bounds.getY(), 0) 
-				+ Math.min((int)getHeight() - bounds.getMaxY(), 0);
+		int dxCorrection = Math.max(-bounds.x(), 0) 
+				+ Math.min(width() - bounds.maxX(), 0);
+		int dyCorrection = Math.max(-bounds.y(), 0) 
+				+ Math.min(height() - bounds.maxY(), 0);
 		selectedNodes().forEach(selected -> selected.translate(dxCorrection, dyCorrection));
 		
 		aLastMousePoint = pMousePoint; 
@@ -730,17 +777,29 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	public Image createImage()
 	{
 		Rectangle bounds = aDiagramBuilder.renderer().getBounds();
-		Canvas canvas = new Canvas(bounds.getWidth() + DIAGRAM_PADDING * 2, 
-				bounds.getHeight() + DIAGRAM_PADDING *2);
+		Canvas canvas = new Canvas(bounds.width() + DIAGRAM_PADDING * 2, 
+				bounds.height() + DIAGRAM_PADDING *2);
 		GraphicsContext context = canvas.getGraphicsContext2D();
 		context.setLineWidth(LINE_WIDTH);
-		context.setFill(Color.WHITE);
-		context.translate(-bounds.getX()+DIAGRAM_PADDING, -bounds.getY()+DIAGRAM_PADDING);
-		aDiagramBuilder.renderer().draw(context);
-		WritableImage image = new WritableImage(bounds.getWidth() + DIAGRAM_PADDING * 2, 
-				bounds.getHeight() + DIAGRAM_PADDING *2);
+		context.setFill(ColorScheme.get().background());
+		context.fillRect(0, 0, width(), height());
+		context.translate(-bounds.x()+DIAGRAM_PADDING, -bounds.y()+DIAGRAM_PADDING);
+		aDiagramBuilder.renderer().draw(new GraphicsRenderingContext(context));
+		WritableImage image = new WritableImage(bounds.width() + DIAGRAM_PADDING * 2, 
+				bounds.height() + DIAGRAM_PADDING *2);
 		canvas.snapshot(null, image);
+		createSvgImage();
 		return image;
+	}
+
+	/**
+	 * @return A string that contains an SVG description of the rendered diagram.
+	 */
+	public String createSvgImage()
+	{
+		SvgRenderingContext context = new SvgRenderingContext(aDiagramBuilder.renderer().getBounds());
+		aDiagramBuilder.renderer().draw(context);
+		return context.create();
 	}
 	
 	/**
@@ -881,19 +940,19 @@ public class DiagramCanvas extends Canvas implements SelectionObserver, BooleanP
 	 */
 	private boolean containsParent(DiagramElement pElement)
 	{
-		if( pElement instanceof Node )
+		if( pElement instanceof Node node)
 		{
-			if( !((Node) pElement).hasParent() )
+			if( !node.hasParent() )
 			{
 				return false;
 			}
-			else if( aSelected.contains(((Node) pElement).getParent()))
+			else if( aSelected.contains(node.getParent()))
 			{
 				return true;
 			}
 			else
 			{
-				return containsParent(((Node) pElement).getParent());
+				return containsParent(node.getParent());
 			}
 		}
 		else

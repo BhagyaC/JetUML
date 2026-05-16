@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,18 +20,19 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.NoteNode;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.ToolGraphics;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
 
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
@@ -45,8 +46,8 @@ public final class NoteNodeRenderer extends AbstractNodeRenderer
 	private static final int DEFAULT_WIDTH = 60;
 	private static final int DEFAULT_HEIGHT = 40;
 	private static final int FOLD_LENGTH = 8;
-	private static final Color NOTE_COLOR = Color.color(0.9f, 0.9f, 0.6f); // Pale yellow
-	private static final StringRenderer NOTE_VIEWER = StringRenderer.get(Alignment.TOP_LEFT, TextDecoration.PADDED);
+	private static final int PADDING = 3;
+	private static final StringRenderer NOTE_VIEWER = new StringRenderer(Alignment.LEFT);
 	
 	/**
 	 * @param pParent Renderer for the parent diagram.
@@ -63,13 +64,17 @@ public final class NoteNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Node node = (Node) pElement;
-		ToolGraphics.strokeAndFillSharpPath(pGraphics, createNotePath(node), NOTE_COLOR, true);
-		ToolGraphics.strokeAndFillSharpPath(pGraphics, createFoldPath(node), Color.WHITE, false);
-		NOTE_VIEWER.draw(((NoteNode)node).getName(), pGraphics, 
-				new Rectangle(node.position().getX(), node.position().getY(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+		pContext.drawClosedPath(createNotePath(node), ColorScheme.get().note(), ColorScheme.get().stroke(),  
+				Optional.of(ColorScheme.get().dropShadow()));
+		pContext.drawClosedPath(createFoldPath(node), Color.WHITE, ColorScheme.get().stroke(), Optional.empty());
+		NOTE_VIEWER.draw(((NoteNode)node).getName(), 
+				new Rectangle(node.position().x() + PADDING, 
+						      node.position().y() + PADDING, 
+						      DEFAULT_WIDTH - FOLD_LENGTH - PADDING * 2, 
+						      DEFAULT_HEIGHT - FOLD_LENGTH - PADDING -2), pContext);
 	}
 	
 	private Path createNotePath(Node pNode)
@@ -77,12 +82,12 @@ public final class NoteNodeRenderer extends AbstractNodeRenderer
 		Path path = new Path();
 		Rectangle bounds = getBounds(pNode);		
 		path.getElements().addAll(
-				new MoveTo(bounds.getX(), bounds.getY()),
-				new LineTo(bounds.getMaxX() - FOLD_LENGTH, bounds.getY()),
-				new LineTo(bounds.getMaxX(), bounds.getY() + FOLD_LENGTH),
-				new LineTo(bounds.getMaxX(), bounds.getMaxY()),
-				new LineTo(bounds.getX(), bounds.getMaxY()),
-				new LineTo(bounds.getX(), bounds.getY()));
+				new MoveTo(bounds.x(), bounds.y()),
+				new LineTo(bounds.maxX() - FOLD_LENGTH, bounds.y()),
+				new LineTo(bounds.maxX(), bounds.y() + FOLD_LENGTH),
+				new LineTo(bounds.maxX(), bounds.maxY()),
+				new LineTo(bounds.x(), bounds.maxY()),
+				new LineTo(bounds.x(), bounds.y()));
 		return path;
 	}
 	
@@ -95,10 +100,10 @@ public final class NoteNodeRenderer extends AbstractNodeRenderer
 		Rectangle bounds = getBounds(pNode);
 		Path path = new Path();
 		path.getElements().addAll(
-				new MoveTo(bounds.getMaxX() - FOLD_LENGTH, bounds.getY()),
-				new LineTo(bounds.getMaxX() - FOLD_LENGTH, bounds.getY() + FOLD_LENGTH),
-				new LineTo(bounds.getMaxX(), bounds.getY() + FOLD_LENGTH),
-				new LineTo(bounds.getMaxX() - FOLD_LENGTH, bounds.getY())
+				new MoveTo(bounds.maxX() - FOLD_LENGTH, bounds.y()),
+				new LineTo(bounds.maxX() - FOLD_LENGTH, bounds.y() + FOLD_LENGTH),
+				new LineTo(bounds.maxX(), bounds.y() + FOLD_LENGTH),
+				new LineTo(bounds.maxX() - FOLD_LENGTH, bounds.y())
 		);
 		return path;
 	}
@@ -106,8 +111,9 @@ public final class NoteNodeRenderer extends AbstractNodeRenderer
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		Dimension textBounds = NOTE_VIEWER.getDimension(((NoteNode)pNode).getName()); 
-		return new Rectangle(pNode.position().getX(), pNode.position().getY(), 
-				Math.max(textBounds.width() + FOLD_LENGTH, DEFAULT_WIDTH), Math.max(textBounds.height(), DEFAULT_HEIGHT));
+		Dimension textDimension = NOTE_VIEWER.getDimension(((NoteNode)pNode).getName());
+		return new Rectangle(pNode.position().x(), pNode.position().y(), 
+				Math.max(textDimension.width() + FOLD_LENGTH + PADDING * 2, DEFAULT_WIDTH), 
+				Math.max(textDimension.height() + PADDING * 2, DEFAULT_HEIGHT));
 	}
 }

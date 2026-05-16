@@ -9,7 +9,7 @@ Thanks for considering contributing to JetUML.
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [JetUML code of conduct](../CODE_OF_CONDUCT.md). 
+This project and everyone participating in it is governed by the [JetUML code of conduct](CODE_OF_CONDUCT.md). 
 By participating, you are expected to uphold this code.
 
 ## Reporting Bugs
@@ -42,3 +42,7 @@ If you would like to contribute a *minor fix*, you can directly submit a [pull r
 ## Tackling Bigger Changes
  
  If you are considering contributing more than a minor fix, please comment on the corresponding issue first to share your ideas.
+
+## See Also
+
+The [developer guide](developers.md)

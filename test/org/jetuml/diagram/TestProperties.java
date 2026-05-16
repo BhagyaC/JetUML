@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -154,7 +154,7 @@ public class TestProperties
 	private int size()
 	{
 		int size = 0;
-		for (Iterator<Property> iterator = aProperties.iterator(); iterator.hasNext();)
+		for(Iterator<Property> iterator = aProperties.iterator(); iterator.hasNext();)
 		{
 			iterator.next();
 			size++;

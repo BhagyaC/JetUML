@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -26,9 +26,8 @@ import java.nio.file.Path;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.ActorNode;
 import org.jetuml.geom.Dimension;
+import org.jetuml.geom.Alignment;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
 import org.jetuml.rendering.nodes.ActorNodeRenderer;
 import org.jetuml.rendering.nodes.UseCaseNodeRenderer;
 
@@ -55,7 +54,7 @@ public abstract class AbstractTestUseCaseDiagramLayout extends AbstractTestDiagr
 	{
 		final int WIDTH = getStaticIntFieldValue(ActorNodeRenderer.class, "WIDTH");
 		final int HEIGHT = getStaticIntFieldValue(ActorNodeRenderer.class, "HEIGHT");
-		StringRenderer nameViewer = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+		StringRenderer nameViewer = new StringRenderer(Alignment.CENTER);
 		Dimension nameBounds = nameViewer.getDimension(((ActorNode)pNode).getName());
 		int calculatedWidth = Math.max(WIDTH, nameBounds.width());
 		int calculatedHeight = HEIGHT + nameBounds.height();

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 
 import org.jetuml.diagram.Edge;
 import org.jetuml.diagram.Node;
-import org.jetuml.geom.EdgePath;
 import org.jetuml.geom.Point;
+import org.jetuml.rendering.EdgePath;
 
 /**
  * Stores the EdgePaths of Edges for class diagrams.
@@ -119,7 +119,7 @@ public class EdgeStorage
 		assert pConnectionPoint !=null;
 		for( EdgePath path : aEdgePaths.values() )
 		{
-			if (path.getStartPoint().equals(pConnectionPoint) || path.getEndPoint().equals(pConnectionPoint))
+			if(path.getStartPoint().equals(pConnectionPoint) || path.getEndPoint().equals(pConnectionPoint))
 			{
 				return false;
 			}

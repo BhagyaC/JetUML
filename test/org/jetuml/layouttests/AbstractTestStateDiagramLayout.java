@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -52,7 +52,7 @@ public abstract class AbstractTestStateDiagramLayout extends AbstractTestDiagram
 	{
 		final int DIAMETER = getStaticIntFieldValue(CircularStateNodeRenderer.class, "DIAMETER");
 		Rectangle bounds = aRenderer.getBounds(pNode);
-		assertEquals(DIAMETER, bounds.getWidth());
-		assertEquals(DIAMETER, bounds.getHeight());
+		assertEquals(DIAMETER, bounds.width());
+		assertEquals(DIAMETER, bounds.height());
 	}
 }

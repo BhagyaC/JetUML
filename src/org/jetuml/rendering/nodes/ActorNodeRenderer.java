@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -24,15 +24,15 @@ import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.ActorNode;
 import org.jetuml.geom.Dimension;
+import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.ToolGraphics;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
 
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -43,15 +43,14 @@ import javafx.scene.shape.QuadCurveTo;
  */
 public final class ActorNodeRenderer extends AbstractNodeRenderer
 {
-	private static final StringRenderer NAME_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	private static final StringRenderer LABEL_RENDERER = new StringRenderer(Alignment.CENTER);
 	
-	private static final int PADDING = 4;
 	private static final int HEAD_SIZE = 16;
 	private static final int BODY_SIZE = 20;
 	private static final int LEG_SIZE  = 20;
 	private static final int ARMS_SIZE = 24;
-	private static final int WIDTH = ARMS_SIZE * 2;
-	private static final int HEIGHT = HEAD_SIZE + BODY_SIZE + LEG_SIZE + PADDING * 2;
+	private static final int WIDTH = GeomUtils.round(LEG_SIZE / Math.sqrt(2)) * 2;
+	private static final int HEIGHT = HEAD_SIZE + BODY_SIZE + GeomUtils.round(LEG_SIZE / Math.sqrt(2));
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -64,39 +63,41 @@ public final class ActorNodeRenderer extends AbstractNodeRenderer
 	@Override
 	public Dimension getDefaultDimension(Node pNode)
 	{
-		return new Dimension(WIDTH, HEIGHT);
+		Rectangle bounds = internalGetBounds(pNode);
+		return new Dimension(bounds.width(), bounds.height());
 	}
 	
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		Dimension nameBounds = NAME_VIEWER.getDimension(((ActorNode)pNode).getName());
-		return new Rectangle(
-				pNode.position().getX() + Math.min(0, (WIDTH - nameBounds.width()) / 2), 
-				pNode.position().getY(),
-				Math.max(WIDTH, nameBounds.width()),
-				HEIGHT + nameBounds.height()
-		);
+		Dimension textDimension = LABEL_RENDERER.getDimension(((ActorNode)pNode).getName());
+		Rectangle bounds = 
+		new Rectangle(
+				pNode.position().x() + Math.min(0, (WIDTH - textDimension.width()) / 2), 
+				pNode.position().y(),
+				Math.max(WIDTH, textDimension.width()),
+				HEIGHT + textDimension.height());
+		return bounds;
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Rectangle bounds = getBounds(pElement);
 		Node node = (Node) pElement;
-		Dimension nameBounds = NAME_VIEWER.getDimension(((ActorNode)node).getName());
-		Rectangle nameBox = new Rectangle(node.position().getX() + (WIDTH - nameBounds.width()) / 2, 
-				bounds.getY() + HEIGHT, nameBounds.width(), nameBounds.height());
-		NAME_VIEWER.draw(((ActorNode)node).getName(), pGraphics, nameBox);
-		ToolGraphics.strokeSharpPath(pGraphics, createStickManPath(node), LineStyle.SOLID);
+		Dimension textDimension = LABEL_RENDERER.getDimension(((ActorNode)node).getName());
+		Rectangle nameBox = new Rectangle(node.position().x() + (WIDTH - textDimension.width()) / 2, 
+				bounds.y() + HEIGHT, textDimension.width(), textDimension.height());
+		LABEL_RENDERER.draw(((ActorNode)node).getName(), nameBox, pContext);
+		pContext.strokePath(createStickManPath(node), ColorScheme.get().stroke(), LineStyle.SOLID);
 	}
 	
 	private static Path createStickManPath(Node pNode)
 	{
 		Path path = new Path();
 		
-		int neckX = pNode.position().getX() + WIDTH / 2;
-		int neckY = pNode.position().getY() + HEAD_SIZE + PADDING;
+		int neckX = pNode.position().x() + WIDTH / 2;
+		int neckY = pNode.position().y() + HEAD_SIZE;
 		int hipX = neckX;
 		int hipY = neckY + BODY_SIZE;
 		float dx = (float) (LEG_SIZE / Math.sqrt(2));

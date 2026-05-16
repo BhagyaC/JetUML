@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,8 +20,6 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
-import static org.jetuml.testutils.GeometryUtils.osDependent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -32,6 +30,7 @@ import java.util.stream.Stream;
 import org.jetuml.JavaFXLoader;
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
+import org.jetuml.application.UserPreferences.StringPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.nodes.ClassNode;
@@ -42,12 +41,15 @@ import org.jetuml.geom.Rectangle;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class TestTypeNodeViewer
 {
+	private static String userDefinedFontName;
 	private static int userDefinedFontSize;
 	private static final TypeNodeRenderer aViewer = new TypeNodeRenderer(DiagramType.newRendererInstanceFor(new Diagram(DiagramType.CLASS)));
 	private final Method aMethodNameBoxHeight;
@@ -75,19 +77,23 @@ public class TestTypeNodeViewer
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontName = UserPreferences.instance().getString(UserPreferences.StringPreference.fontName);
+		UserPreferences.instance().setString(StringPreference.fontName, UserPreferences.DEFAULT_FONT_NAME);
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 		JavaFXLoader.load();
 	}
 	
 	@AfterAll
 	public static void restorePreferences()
 	{
+		UserPreferences.instance().setString(StringPreference.fontName, userDefinedFontName);
 		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
 	}
 	
 	@ParameterizedTest
 	@MethodSource("provideArgumentsForTestBounds")
+	@EnabledOnOs(OS.WINDOWS)
 	public void testBounds(TypeNode pNode, Rectangle pOracle)
 	{
 		assertEquals(pOracle, aViewer.getBounds(pNode));
@@ -144,7 +150,7 @@ public class TestTypeNodeViewer
 		ClassNode node = new ClassNode();
 		node.setName("NAME1\nNAME2\nNAME3\nNAME4");
 		return Arguments.of(node, 
-				new Rectangle(0, 0, 100, osDependent(75, 68, 65))); // Default width and additional height
+				new Rectangle(0, 0, 100, 76)); // Default width and additional height
 	}
 
 	// Name is just the interface prototype, one methods

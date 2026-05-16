@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -105,26 +105,6 @@ public class TestUseCaseDiagramValidator
 		pEdge.connect(aNoteNode, aNoteNode);
 		diagram().addEdge(pEdge);
 		diagram().addRootNode(aNoteNode);
-		assertFalse(aValidator.isValid());
-	}
-	
-	@Test
-	void testActorToNote()
-	{
-		diagram().addRootNode(aActor1);
-		diagram().addRootNode(aNoteNode);
-		aDependency.connect(aActor1, aNoteNode);
-		diagram().addEdge(aDependency);
-		assertFalse(aValidator.isValid());
-	}
-	
-	@Test
-	void testNoteToActor()
-	{
-		diagram().addRootNode(aActor1);
-		diagram().addRootNode(aNoteNode);
-		aDependency.connect(aNoteNode, aActor1);
-		diagram().addEdge(aDependency);
 		assertFalse(aValidator.isValid());
 	}
 	

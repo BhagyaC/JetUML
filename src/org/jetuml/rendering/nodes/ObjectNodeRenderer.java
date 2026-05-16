@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,21 +20,22 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.FieldNode;
 import org.jetuml.diagram.nodes.ObjectNode;
 import org.jetuml.geom.Dimension;
+import org.jetuml.geom.GridUtils;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.Grid;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-
-import javafx.scene.canvas.GraphicsContext;
+import org.jetuml.rendering.StringRenderer.Decoration;
 
 /**
  * An object to render an object in an object diagram.
@@ -43,11 +44,11 @@ public final class ObjectNodeRenderer extends AbstractNodeRenderer
 {
 	private static final int DEFAULT_WIDTH = 80;
 	private static final int DEFAULT_HEIGHT = 60;
-	private static final int TEXT_HORIZONTAL_MARGIN = 5;
+	private static final int TEXT_HORIZONTAL_MARGIN = 10;
 	private static final int XGAP = 5;
 	private static final int YGAP = 5;
-	private static final StringRenderer NAME_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, 
-			TextDecoration.BOLD, TextDecoration.UNDERLINED, TextDecoration.PADDED);
+	private static final StringRenderer LABEL_RENDERER = new StringRenderer(Alignment.CENTER, 
+			Decoration.BOLD, Decoration.UNDERLINED);
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -64,26 +65,31 @@ public final class ObjectNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		final Rectangle bounds = getBounds(pElement);
 		Node node = (Node) pElement;
 		final Rectangle topRectangle = getTopRectangle(node);
-		int dividerPosition = topRectangle.getMaxY();
-		RenderingUtils.drawRectangle(pGraphics, bounds);
+		int dividerPosition = topRectangle.maxY();
+		pContext.drawRectangle(bounds, ColorScheme.get().fill(), ColorScheme.get().stroke(),
+				Optional.of(ColorScheme.get().dropShadow()));
 		if( ((ObjectNode)node).getChildren().size() > 0 ) 
 		{
-			RenderingUtils.drawLine(pGraphics, bounds.getX(), dividerPosition, bounds.getMaxX(), dividerPosition, LineStyle.SOLID);
+			pContext.strokeLine(bounds.x(), dividerPosition, bounds.maxX(), dividerPosition, 
+					ColorScheme.get().stroke(),
+					LineStyle.SOLID);
 		}
-		NAME_VIEWER.draw(((ObjectNode)node).getName(), pGraphics, 
-				new Rectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), topRectangle.getHeight()));
+		Rectangle top = new Rectangle(bounds.x(), bounds.y(), bounds.width(), topRectangle.height());
+		LABEL_RENDERER.draw(((ObjectNode)node).getName(), 
+				top.centerSlice(LABEL_RENDERER.lineHeight()), pContext);
 	}
 	
 	private static Rectangle getTopRectangle(Node pNode)
 	{
-		Dimension bounds = NAME_VIEWER.getDimension(((ObjectNode)pNode).getName() + TEXT_HORIZONTAL_MARGIN); 
-		bounds = bounds.include(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-		return new Rectangle(0, 0, bounds.width(), bounds.height()).translated(pNode.position().getX(), pNode.position().getY());
+		Dimension bounds = LABEL_RENDERER.getDimension(((ObjectNode)pNode).getName()); 
+		return new Rectangle(pNode.position().x(), pNode.position().y(), 
+				Math.max(DEFAULT_WIDTH, bounds.width() + TEXT_HORIZONTAL_MARGIN),
+				Math.max(DEFAULT_HEIGHT,  bounds.height()));
 	}
 	
 	/**
@@ -98,7 +104,7 @@ public final class ObjectNodeRenderer extends AbstractNodeRenderer
 		{
 			leftWidth = Math.max(leftWidth, FieldNodeRenderer.leftWidth(field));
 		}
-		return pNode.position().getX() + leftWidth + XGAP;
+		return pNode.position().x() + leftWidth + XGAP;
 	}
 	
 	@Override
@@ -118,9 +124,9 @@ public final class ObjectNodeRenderer extends AbstractNodeRenderer
 			leftWidth = Math.max(leftWidth, FieldNodeRenderer.leftWidth(field));
 			rightWidth = Math.max(rightWidth, FieldNodeRenderer.rightWidth(field));
 		}
-		int width = Math.max(bounds.getWidth(), leftWidth + rightWidth + 2 * XGAP);
-		width = Grid.toMultiple(width);
-		return new Rectangle(bounds.getX(), bounds.getY(), width, Grid.toMultiple(bounds.getHeight() + height));
+		int width = Math.max(bounds.width(), leftWidth + rightWidth + 2 * XGAP);
+		width = GridUtils.toMultiple(width);
+		return new Rectangle(bounds.x(), bounds.y(), width, GridUtils.toMultiple(bounds.height() + height));
 	}
 	
 	/**
@@ -132,7 +138,7 @@ public final class ObjectNodeRenderer extends AbstractNodeRenderer
 	{
 		assert ((ObjectNode)pNode).getChildren().contains(pFieldNode);
 		Rectangle bounds = getTopRectangle(pNode);
-		int yPosition = bounds.getMaxY() + YGAP; 
+		int yPosition = bounds.maxY() + YGAP; 
 		for( Node field : ((ObjectNode)pNode).getChildren() )
 		{
 			yPosition += YGAP;

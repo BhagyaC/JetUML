@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  * 
  * See: https://github.com/prmr/JetUML
  *
@@ -76,7 +76,7 @@ final class TipLoader
 	{
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
 		byte[] buffer = new byte[BYTES_IN_KILOBYTE];
-		for (int length; (length = pStream.read(buffer)) != -1; )
+		for(int length; (length = pStream.read(buffer)) != -1; )
 		{
 			result.write(buffer, 0, length);
 		}
@@ -91,6 +91,7 @@ final class TipLoader
 		private final int aId;
 		private final String aTitle;
 		private final List<TipElement> aElements;
+		private final List<TipCategory> aCategories;
 
 		/**
 		 * @param pId the id associated with the tip (number in the tip's file's
@@ -104,6 +105,7 @@ final class TipLoader
 			aId = pId;
 			aTitle = (String) pTip.get(TipFieldName.TITLE.asString());
 			aElements = convertJsonObjectToTipElements(pTip);
+			aCategories = convertJsonObjectToTipCategories(pTip);
 		}
 
 		/**
@@ -129,6 +131,11 @@ final class TipLoader
 		{
 			return new ArrayList<>(aElements);
 		}
+		
+		public List<TipCategory> getCategories()
+		{
+			return new ArrayList<>(aCategories);
+		}
 
 		/**
 		 * @param pTip A JsonObject obtained from the JsonArray gotten by
@@ -138,7 +145,7 @@ final class TipLoader
 		{
 			List<TipElement> elements = new ArrayList<>();
 
-			for (Object contentObject : pTip.getJsonArray(TipFieldName.CONTENT.asString()))
+			for(Object contentObject : pTip.getJsonArray(TipFieldName.CONTENT.asString()))
 			{
 				JsonObject contentJsonObject = (JsonObject) contentObject;
 				Media media = discoverMediaUsed(contentJsonObject);
@@ -147,17 +154,47 @@ final class TipLoader
 			return elements;
 		}
 		
+		private static List<TipCategory> convertJsonObjectToTipCategories(JsonObject pTip)
+		{
+			List<TipCategory> categories = new ArrayList<>();
+			
+			for(Object tagsObject : pTip.getJsonArray(TipFieldName.TAGS.asString()))
+			{
+				JsonObject tagsJsonObject = (JsonObject) tagsObject;
+				TipCategory category = discoverCategory(tagsJsonObject);
+				categories.add(category);
+			}
+			return categories;
+		}
+		
 		/*
 	     * A tip content contains one property whose name is any Media value
 	     * in lower case: discover which one it is.
 		 */
 		private static Media discoverMediaUsed(JsonObject pTipContent)
 		{
-			for (Media media : Media.values())
+			for(Media media : Media.values())
 			{
 				if(pTipContent.hasProperty(media.name().toLowerCase()))
 				{
 					return media;
+				}
+			}
+			assert false;
+			return null;
+		}
+		
+		/*
+	     * A tip view contains one property whose name is any View value
+	     * in lower case: discover which one it is.
+		 */
+		private static TipCategory discoverCategory(JsonObject pTipContent)
+		{
+			for(View view : View.values())
+			{
+				if(pTipContent.hasProperty(view.name().toLowerCase()))
+				{
+					return TipCategory.valueOf(pTipContent.getString(view.name().toLowerCase()).toUpperCase());
 				}
 			}
 			assert false;

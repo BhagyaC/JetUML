@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -27,7 +27,6 @@ import org.jetuml.application.UserPreferences.IntegerPreference;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -38,8 +37,6 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
@@ -54,31 +51,29 @@ public class DiagramSizeDialog
 	private static final int MAX_SIZE = 4000;
 	private static final int MIN_SIZE = 250;
 	
-	private final Stage aStage = new Stage();
+	private final Stage aStage;
 	private final TextField aWidthField = new TextField();
 	private final TextField aHeightField = new TextField();
 	
 	/**
 	 * Creates a new dialog.
 	 * 
-	 * @param pOwner The stage that owns this stage.
+	 * @param pDialogStage The stage that owns this stage.
 	 */
-	public DiagramSizeDialog( Stage pOwner )
+	public DiagramSizeDialog( Stage pDialogStage )
 	{
-		prepareStage(pOwner);
-		aStage.setScene(createScene());
+		aStage = pDialogStage;
+		prepareStage();
+		aStage.getScene().setRoot(createRoot());
 	}
 	
-	private void prepareStage(Stage pOwner) 
+	private void prepareStage() 
 	{
-		aStage.setResizable(false);
-		aStage.initModality(Modality.WINDOW_MODAL);
-		aStage.initOwner(pOwner);
 		aStage.setTitle(RESOURCES.getString("dialog.diagram_size.title"));
 		aStage.getIcons().add(new Image(RESOURCES.getString("application.icon")));
 	}
 	
-	private Scene createScene() 
+	private Pane createRoot() 
 	{
 		BorderPane layout = new BorderPane();
 		layout.setPadding( new Insets(SPACING));
@@ -87,13 +82,13 @@ public class DiagramSizeDialog
 		message = message.replace("#1", Integer.toString(MIN_SIZE));
 		message = message.replace("#2", Integer.toString(MAX_SIZE));
 
-		HBox top = new HBox(new Text(message));
+		HBox top = new HBox(new Label(message));
 		top.setAlignment(Pos.CENTER);
 		layout.setTop(top);
 		layout.setCenter(createForm());
 		layout.setBottom(createButtons());
 		
-		return new Scene(layout);
+		return layout;
 	}
 	
 	private Pane createForm()

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -45,13 +45,13 @@ public enum EdgePriority
 	public static EdgePriority priorityOf(Edge pEdge)
 	{
 		assert pEdge != null;
-		if (pEdge.start()!= null && pEdge.end() != null && pEdge.start().equals(pEdge.end()))
+		if(pEdge.start()!= null && pEdge.end() != null && pEdge.start().equals(pEdge.end()))
 		{
 			return EdgePriority.SELF_EDGE;
 		}
-		else if (pEdge instanceof GeneralizationEdge)
+		else if(pEdge instanceof GeneralizationEdge edge)
 		{
-			if (((GeneralizationEdge) pEdge).getType() == GeneralizationEdge.Type.Inheritance) 
+			if(edge.getType() == GeneralizationEdge.Type.Inheritance) 
 			{
 				return EdgePriority.INHERITANCE;
 			}
@@ -60,9 +60,9 @@ public enum EdgePriority
 				return EdgePriority.IMPLEMENTATION;
 			}
 		}
-		else if (pEdge instanceof AggregationEdge)
+		else if(pEdge instanceof AggregationEdge edge)
 		{
-			if (((AggregationEdge) pEdge).getType() == AggregationEdge.Type.Aggregation)
+			if(edge.getType() == AggregationEdge.Type.Aggregation)
 			{
 				return EdgePriority.AGGREGATION;
 			}
@@ -71,11 +71,11 @@ public enum EdgePriority
 				return EdgePriority.COMPOSITION;
 			}
 		}
-		else if (pEdge instanceof AssociationEdge)
+		else if(pEdge instanceof AssociationEdge)
 		{
 			return EdgePriority.ASSOCIATION;
 		}
-		else if (pEdge instanceof DependencyEdge)
+		else if(pEdge instanceof DependencyEdge)
 		{
 			return EdgePriority.DEPENDENCY;
 		}
@@ -95,7 +95,7 @@ public enum EdgePriority
 	public static boolean isSegmented(EdgePriority pPriority)
 	{
 		assert pPriority != null;
-		if (pPriority == EdgePriority.INHERITANCE || pPriority == EdgePriority.IMPLEMENTATION)
+		if(pPriority == EdgePriority.INHERITANCE || pPriority == EdgePriority.IMPLEMENTATION)
 		{
 			return true;
 		}

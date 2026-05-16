@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -92,7 +92,7 @@ public class TestNodeStorage
 			@Override
 			public Rectangle apply(Node pNode) 
 			{
-				return new Rectangle(pNode.position().getX(), pNode.position().getY(), 100, 100);
+				return new Rectangle(pNode.position().x(), pNode.position().y(), 100, 100);
 			}
 		};
 	}

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,20 +18,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.rendering.edges;
 
 import static org.jetuml.rendering.ArrowHead.NONE;
 import static org.jetuml.rendering.ArrowHead.V;
 
-import org.jetuml.geom.Conversions;
+import java.util.Optional;
+
+import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.RenderingContext;
 
-import javafx.scene.canvas.GraphicsContext;
+import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
@@ -50,43 +52,43 @@ public final class ArrowHeadRenderer
 	/**
 	 * Draws an arrow head at the end of the axis.
 	 * 
-	 * @param pGraphics the graphics context
+	 * @param pContext The rendering context on which to draw.
 	 * @param pArrowHead The type of arrow head to draw
 	 * @param pAxis A line in the direction of the arrow ending a pAxis.getPoint2()
 	 */
-	public static void draw(GraphicsContext pGraphics, ArrowHead pArrowHead, Line pAxis)
+	public static void draw(RenderingContext pContext, ArrowHead pArrowHead, Line pAxis)
 	{
-		assert pGraphics != null && pArrowHead != null && pAxis != null;
+		assert pContext != null && pArrowHead != null && pAxis != null;
+		
+		// Don't draw anything if the path is empty, which is the case
+		// if there's no arrowhead.
+		Path path = getPath(pArrowHead, pAxis);
+		if (path.getElements().isEmpty())
+		{
+			return;
+		}
 		
 		if(pArrowHead.isFilled()) 
 		{
-			ToolGraphics.strokeAndFillSharpPath(pGraphics, getPath(pArrowHead, pAxis), Color.BLACK, false);
+			pContext.drawClosedPath(path, Color.BLACK, ColorScheme.get().stroke(), Optional.empty());
 		}
 		else 
 		{
-			ToolGraphics.strokeAndFillSharpPath(pGraphics, getPath(pArrowHead, pAxis), Color.WHITE, false);
+			pContext.drawClosedPath(path, Color.WHITE, ColorScheme.get().stroke(), Optional.empty());
 		}
 	}
 	
 	/**
 	 * Draws an arrow head at pPoint2 for a direction given from pPoint2.
 	 * 
-	 * @param pGraphics the graphics context
+	 * @param pContext The rendering context on which to draw.
 	 * @param pArrowHead The type of arrow head to draw
 	 * @param pAxis A line in the direction of the arrow ending a pAxis.getPoint2()
 	 */
-	public static void draw(GraphicsContext pGraphics, ArrowHead pArrowHead, Point pPoint1, Point pPoint2)
+	public static void draw(RenderingContext pContext, ArrowHead pArrowHead, Point pPoint1, Point pPoint2)
 	{
-		assert pGraphics != null && pArrowHead != null && pPoint1 != null && pPoint2 != null;
-		
-		if(pArrowHead.isFilled()) 
-		{
-			ToolGraphics.strokeAndFillSharpPath(pGraphics, getPath(pArrowHead, new Line(pPoint1, pPoint2)), Color.BLACK, false);
-		}
-		else 
-		{
-			ToolGraphics.strokeAndFillSharpPath(pGraphics, getPath(pArrowHead, new Line(pPoint1, pPoint2)), Color.WHITE, false);
-		}
+		assert pContext != null && pArrowHead != null && pPoint1 != null && pPoint2 != null;
+		draw(pContext, pArrowHead, new Line(pPoint1, pPoint2));
 	}
 	
 	/**
@@ -98,7 +100,7 @@ public final class ArrowHeadRenderer
 	 */
 	public static Rectangle getBounds(ArrowHead pArrowHead, Line pAxis)
 	{
-		return Conversions.toRectangle(getPath(pArrowHead, pAxis).getBoundsInLocal());
+		return toRectangle(getPath(pArrowHead, pAxis).getBoundsInLocal());
 	}
 	
    	/**
@@ -114,22 +116,22 @@ public final class ArrowHeadRenderer
    			return new Path();
    		}
    		
-   		int dx = pAxis.getX2() - pAxis.getX1();
-   		int dy = pAxis.getY2() - pAxis.getY1();
+   		int dx = pAxis.x2() - pAxis.x1();
+   		int dy = pAxis.y2() - pAxis.y1();
    		final double angle = Math.atan2(dy, dx);
-   		int x1 = (int) Math.round(pAxis.getX2() - ARROW_LENGTH * Math.cos(angle + ARROW_ANGLE));
-   		int y1 = (int) Math.round(pAxis.getY2() - ARROW_LENGTH * Math.sin(angle + ARROW_ANGLE));
-   		int x2 = (int) Math.round(pAxis.getX2() - ARROW_LENGTH * Math.cos(angle - ARROW_ANGLE));
-   		int y2 = (int) Math.round(pAxis.getY2() - ARROW_LENGTH * Math.sin(angle - ARROW_ANGLE));
+   		int x1 = GeomUtils.round(pAxis.x2() - ARROW_LENGTH * Math.cos(angle + ARROW_ANGLE));
+   		int y1 = GeomUtils.round(pAxis.y2() - ARROW_LENGTH * Math.sin(angle + ARROW_ANGLE));
+   		int x2 = GeomUtils.round(pAxis.x2() - ARROW_LENGTH * Math.cos(angle - ARROW_ANGLE));
+   		int y2 = GeomUtils.round(pAxis.y2() - ARROW_LENGTH * Math.sin(angle - ARROW_ANGLE));
 
-   		MoveTo moveToOrigin = new MoveTo(pAxis.getX2(), pAxis.getY2());
+   		MoveTo moveToOrigin = new MoveTo(pAxis.x2(), pAxis.y2());
    		LineTo lineTo1 = new LineTo(x1, y1);
    		Path path = new Path();
    		path.getElements().addAll(moveToOrigin, lineTo1);
    		if(pArrowHead == V)
    		{
    			MoveTo moveTo2 = new MoveTo(x2, y2);
-   			LineTo lineTo2 = new LineTo(pAxis.getX2(), pAxis.getY2());
+   			LineTo lineTo2 = new LineTo(pAxis.x2(), pAxis.y2());
    			path.getElements().addAll(moveTo2, lineTo2);
    		}
    		else if(pArrowHead.isTriangle())
@@ -140,8 +142,8 @@ public final class ArrowHeadRenderer
    		}
    		else if(pArrowHead.isDiamond())
    		{
-   			final int x3 = (int) Math.round( x2 - ARROW_LENGTH * Math.cos(angle + ARROW_ANGLE));
-   			final int y3 = (int) Math.round( y2 - ARROW_LENGTH * Math.sin(angle + ARROW_ANGLE));
+   			final int x3 = GeomUtils.round( x2 - ARROW_LENGTH * Math.cos(angle + ARROW_ANGLE));
+   			final int y3 = GeomUtils.round( y2 - ARROW_LENGTH * Math.sin(angle + ARROW_ANGLE));
    			LineTo lineTo5 = new LineTo(x3, y3);
    			LineTo lineTo6 = new LineTo(x2, y2);
    			LineTo lineTo7 = new LineTo(moveToOrigin.getX(), moveToOrigin.getY());
@@ -149,4 +151,15 @@ public final class ArrowHeadRenderer
    		}      
    		return path;
    	}
+   	
+   	/*
+	 * @param pBounds An input bounds object.
+	 * @return A rectangle that corresponds to pBounds.
+	 * @pre pBounds != null;
+	 */
+	private static Rectangle toRectangle(Bounds pBounds)
+	{
+		assert pBounds != null;
+		return new Rectangle((int)pBounds.getMinX(), (int)pBounds.getMinY(), (int)pBounds.getWidth(), (int)pBounds.getHeight());
+	}
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -113,9 +113,9 @@ public class ObjectDiagramBuilder extends DiagramBuilder
 	public DiagramOperation createAddNodeOperation(Node pNode, Point pRequestedPosition)
 	{
 		DiagramOperation result = null;
-		if( pNode instanceof FieldNode )
+		if( pNode instanceof FieldNode fieldNode)
 		{
-			ObjectNode object = findObject((FieldNode)pNode, pRequestedPosition);
+			ObjectNode object = findObject(fieldNode, pRequestedPosition);
 			
 			if( object != null )
 			{

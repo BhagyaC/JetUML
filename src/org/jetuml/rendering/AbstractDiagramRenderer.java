@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  * 
  * See: https://github.com/prmr/JetUML
  *
@@ -41,7 +41,6 @@ import org.jetuml.rendering.nodes.NoteNodeRenderer;
 import org.jetuml.rendering.nodes.PointNodeRenderer;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * Default implementation of the rendering operations.
@@ -65,9 +64,9 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 	// Recursively enlarge the current rectangle to include the selected DiagramElements
 	private Rectangle addBounds(Rectangle pBounds, DiagramElement pElement)
 	{
-		if( pElement instanceof Node && ((Node) pElement).hasParent())
+		if( pElement instanceof Node node && node.hasParent())
 		{
-			return addBounds(pBounds, ((Node) pElement).getParent());
+			return addBounds(pBounds, node.getParent());
 		}
 		else
 		{
@@ -99,10 +98,10 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 				.map(NodeRenderer.class::cast).forEach(NodeRenderer::deactivateAndClearNodeStorage);
 	}
 
-	protected void drawNode(Node pNode, GraphicsContext pGraphics)
+	protected void drawNode(Node pNode, RenderingContext pContext)
 	{
-		draw(pNode, pGraphics);
-		pNode.getChildren().forEach(node -> drawNode(node, pGraphics));
+		draw(pNode, pContext);
+		pNode.getChildren().forEach(node -> drawNode(node, pContext));
 	}
 	
 	protected Optional<Node> deepFindNode(Node pNode, Point pPoint)
@@ -121,9 +120,9 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 	public Rectangle getBounds()
 	{
 		Rectangle bounds = null;
-		for (Node node : aDiagram.rootNodes())
+		for(Node node : aDiagram.rootNodes())
 		{
-			if (bounds == null)
+			if(bounds == null)
 			{
 				bounds = getBounds(node);
 			}
@@ -132,17 +131,17 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 				bounds = bounds.add(getBounds(node));
 			}
 		}
-		for (Edge edge : aDiagram.edges())
+		for(Edge edge : aDiagram.edges())
 		{
 			bounds = bounds.add(getBounds(edge));
 		}
-		if (bounds == null)
+		if(bounds == null)
 		{
 			return new Rectangle(0, 0, 0, 0);
 		}
 		else
 		{
-			return new Rectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+			return new Rectangle(bounds.x(), bounds.y(), bounds.width(), bounds.height());
 		}
 	}
 	
@@ -154,19 +153,19 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 	}
 
 	@Override
-	public void draw(GraphicsContext pGraphics)
+	public void draw(RenderingContext pContext)
 	{
-		assert pGraphics != null;
+		assert pContext != null;
 		activateNodeStorages();
-		aDiagram.rootNodes().forEach(node -> drawNode(node, pGraphics));
-		aDiagram.edges().forEach(edge -> draw(edge, pGraphics));
+		aDiagram.rootNodes().forEach(node -> drawNode(node, pContext));
+		aDiagram.edges().forEach(edge -> draw(edge, pContext));
 		deactivateAndClearNodeStorages();
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
-		aRenderers.get(pElement.getClass()).draw(pElement, pGraphics);
+		aRenderers.get(pElement.getClass()).draw(pElement, pContext);
 	}
 
 	@Override
@@ -200,13 +199,6 @@ public abstract class AbstractDiagramRenderer implements DiagramRenderer
 	{
 		assert pElement != null;
 		return aRenderers.get(pElement.getClass()).createIcon(DiagramType.USECASE, pElement);
-	}
-
-	@Override
-	public void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics)
-	{
-		assert pElement != null && pGraphics != null;
-		aRenderers.get(pElement.getClass()).drawSelectionHandles(pElement, pGraphics);
 	}
 
 	@Override

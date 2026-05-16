@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -22,6 +22,7 @@ package org.jetuml.rendering.edges;
 
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Edge;
+import org.jetuml.geom.Alignment;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Direction;
 import org.jetuml.geom.Line;
@@ -29,11 +30,8 @@ import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.ToolGraphics;
-import org.jetuml.rendering.StringRenderer.Alignment;
 
 import javafx.geometry.Bounds;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -48,7 +46,7 @@ public abstract class AbstractEdgeRenderer implements EdgeRenderer
 	protected static final int BUTTON_SIZE = 25;
 	protected static final int OFFSET = 3;
 	protected static final int MAX_LENGTH_FOR_NORMAL_FONT = 15;
-	private static final StringRenderer SIZE_TESTER = StringRenderer.get(Alignment.TOP_LEFT);
+	private static final StringRenderer SIZE_TESTER = new StringRenderer(Alignment.LEFT);
 	
 	private static final int DEGREES_180 = 180;
 	
@@ -78,8 +76,8 @@ public abstract class AbstractEdgeRenderer implements EdgeRenderer
 		assert pEdge != null;
 		Line endPoints = getConnectionPoints(pEdge);
 		Path path = new Path();
-		path.getElements().addAll(new MoveTo(endPoints.getX1(), endPoints.getY1()), 
-				new LineTo(endPoints.getX2(), endPoints.getY2()));
+		path.getElements().addAll(new MoveTo(endPoints.x1(), endPoints.y1()), 
+				new LineTo(endPoints.x2(), endPoints.y2()));
 		return path;
 	}
 	
@@ -98,14 +96,14 @@ public abstract class AbstractEdgeRenderer implements EdgeRenderer
 		Edge edge = (Edge) pElement;
 		// Purposefully does not include the arrow head and labels, which create large bounds.
 		Line conn = getConnectionPoints(edge);
-		if(pPoint.distance(conn.getPoint1()) <= MAX_DISTANCE || pPoint.distance(conn.getPoint2()) <= MAX_DISTANCE)
+		if(pPoint.distance(conn.point1()) <= MAX_DISTANCE || pPoint.distance(conn.point2()) <= MAX_DISTANCE)
 		{
 			return false;
 		}
 
 		Shape fatPath = getShape(edge);
 		fatPath.setStrokeWidth(2 * MAX_DISTANCE);
-		return fatPath.contains(pPoint.getX(), pPoint.getY());
+		return fatPath.contains(pPoint.x(), pPoint.y());
 	}
 	
 	@Override
@@ -127,19 +125,13 @@ public abstract class AbstractEdgeRenderer implements EdgeRenderer
 	{
 		Rectangle startBounds = parent().getBounds(pEdge.start());
 		Rectangle endBounds = parent().getBounds(pEdge.end());
-		Point startCenter = startBounds.getCenter();
-		Point endCenter = endBounds.getCenter();
+		Point startCenter = startBounds.center();
+		Point endCenter = endBounds.center();
 		Direction toEnd = Direction.fromLine(startCenter, endCenter);
 		return new Line(parent().getConnectionPoints(pEdge.start(), toEnd), 
 				parent().getConnectionPoints(pEdge.end(), toEnd.rotatedBy(DEGREES_180)));
 	}
 
-	@Override
-	public void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics)
-	{
-		ToolGraphics.drawHandles(pGraphics, getConnectionPoints((Edge)pElement));		
-	}
-	
 	protected String wrapLabel(String pString, int pDistanceInX, int pDistanceInY)
 	{
 		final int singleCharWidth = SIZE_TESTER.getDimension(" ").width();
@@ -148,11 +140,46 @@ public abstract class AbstractEdgeRenderer implements EdgeRenderer
 		int lineLength = MAX_LENGTH_FOR_NORMAL_FONT;
 		double distanceInX = pDistanceInX / singleCharWidth;
 		double distanceInY = pDistanceInY / singleCharHeight;
-		if (distanceInX > 0)
+		if(distanceInX > 0)
 		{
 			double angleInDegrees = Math.toDegrees(Math.atan(distanceInY/distanceInX));
 			lineLength = Math.max(MAX_LENGTH_FOR_NORMAL_FONT, (int)((distanceInX / 4) * (1 - angleInDegrees / DEGREES_180)));
 		}
-		return StringRenderer.wrapString(pString, lineLength);
+		return wrapString(pString, lineLength);
+	}
+	
+	/**
+	 * Breaks up a string such that each multi-word line has at most pWidth
+	 * characters.
+	 * 
+	 * @param pString The string to wrap.
+	 * @param pWidth The maximum number of characters on a line.
+	 * @return The new string.
+	 */
+	protected static String wrapString(String pString, int pWidth)
+	{
+		int remainingEmptySpace = pWidth;
+		final int spaceLength = 1;
+		String[] words = pString.split(" ");
+		StringBuilder formattedString = new StringBuilder();
+
+		for( String word : words )
+		{
+			// Replace last space with newline (if last space exists)
+			if( word.length() > remainingEmptySpace && formattedString.length() > 0 )
+			{
+				formattedString.deleteCharAt(formattedString.length() - 1);
+				formattedString.append('\n');
+				remainingEmptySpace = pWidth;
+			}
+
+			remainingEmptySpace = remainingEmptySpace - word.length() - spaceLength;
+			formattedString.append(word);
+			formattedString.append(' ');
+		}
+
+		// Remove extraneous space
+		formattedString.deleteCharAt(formattedString.length() - 1);
+		return formattedString.toString();
 	}
 }

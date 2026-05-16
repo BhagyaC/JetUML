@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.gui;
 
 import java.lang.reflect.InvocationTargetException;
@@ -192,7 +191,11 @@ public class PropertySheet extends GridPane
 		   aListener.propertyChanged();
 		});
 		
-		return new ScrollPane(textArea);
+		// Necessary to fix scroll bar problem. See issue #553.
+		ScrollPane sp = new ScrollPane(textArea);
+		sp.setFitToHeight(true);
+		sp.setFitToWidth(true);
+		return sp;
 	}
 	
 	/*
@@ -227,18 +230,18 @@ public class PropertySheet extends GridPane
 		{
 			final String aFocusEventText = "TAB_TO_FOCUS_EVENT";
 			
-			if (!KeyCode.TAB.equals(pKeyEvent.getCode()))
+			if(!KeyCode.TAB.equals(pKeyEvent.getCode()))
 	        {
 	            return;
 	        }
-	        if (pKeyEvent.isAltDown() || pKeyEvent.isMetaDown() || pKeyEvent.isShiftDown() || !(pKeyEvent.getSource() instanceof TextArea))
+	        if(pKeyEvent.isAltDown() || pKeyEvent.isMetaDown() || pKeyEvent.isShiftDown() || !(pKeyEvent.getSource() instanceof TextArea))
 	        {
 	            return;
 	        }
 	        final TextArea textAreaSource = (TextArea) pKeyEvent.getSource();
-	        if (pKeyEvent.isControlDown())
+	        if(pKeyEvent.isControlDown())
 	        {
-	            if (!aFocusEventText.equalsIgnoreCase(pKeyEvent.getText()))
+	            if(!aFocusEventText.equalsIgnoreCase(pKeyEvent.getText()))
 	            {
 	            	pKeyEvent.consume();
 	                textAreaSource.replaceSelection("\t");

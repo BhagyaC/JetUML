@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.diagram.builder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.DiagramType;
@@ -39,10 +39,15 @@ import org.jetuml.diagram.nodes.ClassNode;
 import org.jetuml.diagram.nodes.InterfaceNode;
 import org.jetuml.diagram.nodes.NoteNode;
 import org.jetuml.diagram.nodes.PackageNode;
+import org.jetuml.diagram.nodes.PointNode;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Point;
 import org.junit.jupiter.api.Test;
 
+/* 
+ * This class also holds the tests for the code implemented in 
+ * DiagramBuilder.
+ */
 public class TestClassDiagramBuilder
 {
 	private Diagram aDiagram = new Diagram(DiagramType.CLASS);
@@ -394,5 +399,38 @@ public class TestClassDiagramBuilder
 		assertFalse(outerParent.getChildren().contains(child));
 		assertTrue(innerParent.getChildren().contains(child));
 		assertSame(innerParent, child.getParent());
+	}
+	
+	@Test
+	void testPointNodeGetsRemovedWhenNoteEdgeRemoved()
+	{
+		NoteNode noteNode = new NoteNode();
+		PointNode pointNode = new PointNode();
+		NoteEdge edge = new NoteEdge();
+		edge.connect(noteNode, pointNode);
+		aDiagram.addRootNode(noteNode);
+		aDiagram.addRootNode(pointNode);
+		aDiagram.addEdge(edge);
+		aBuilder.createRemoveElementsOperation(List.of(edge)).execute();
+		assertFalse(aDiagram.contains(edge));
+		assertFalse(aDiagram.contains(pointNode));
+	}
+	
+	/*
+	 * Bug https://github.com/prmr/JetUML/issues/522 
+	 */
+	@Test
+	void testPointNodeGetsRemovedWhenNoteNodeRemoved()
+	{
+		NoteNode noteNode = new NoteNode();
+		PointNode pointNode = new PointNode();
+		NoteEdge edge = new NoteEdge();
+		edge.connect(noteNode, pointNode);
+		aDiagram.addRootNode(noteNode);
+		aDiagram.addRootNode(pointNode);
+		aDiagram.addEdge(edge);
+		aBuilder.createRemoveElementsOperation(List.of(noteNode)).execute();
+		assertFalse(aDiagram.contains(edge));
+		assertFalse(aDiagram.contains(pointNode));
 	}
 }

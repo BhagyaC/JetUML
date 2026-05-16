@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,7 @@
  *******************************************************************************/
 package org.jetuml;
 
+import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 
 /**
@@ -33,5 +34,9 @@ public final class JavaFXLoader
 	
 	private JavaFXLoader() {}
 	
-	public static void load() {}
+	public static void load() {
+		// This prevents the JavaFX Application Thread from exiting after the execution of the
+		// first test file using it.
+		Platform.setImplicitExit(false);
+	}
 }

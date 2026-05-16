@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -27,8 +27,7 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
 import org.jetuml.rendering.DiagramRenderer;
-
-import javafx.scene.canvas.GraphicsContext;
+import org.jetuml.rendering.RenderingContext;
 
 /**
  * An object to render a PointNode.
@@ -54,7 +53,7 @@ public final class PointNodeRenderer extends AbstractNodeRenderer
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		return new Rectangle(pNode.position().getX(), pNode.position().getY(), 0, 0);
+		return new Rectangle(pNode.position().x(), pNode.position().y(), 0, 0);
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public final class PointNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics) 
+	public void draw(DiagramElement pElement, RenderingContext pContext) 
 	{
 		// Do nothing, a point is invisible.
 	}

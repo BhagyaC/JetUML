@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,10 +20,11 @@
  *******************************************************************************/
 package org.jetuml.rendering.edges;
 
+import org.jetuml.geom.GeomUtils;
+import org.jetuml.geom.GridUtils;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
-import org.jetuml.geom.Side;
-import org.jetuml.rendering.Grid;
+import org.jetuml.rendering.Side;
 
 /**
  * Represents indexed positions on the faces of nodes where edges can attach.
@@ -62,15 +63,15 @@ public enum NodeIndex
 		//Determine center point and add the offset to the center point
 		if(pAttachmentSide.isHorizontal())
 		{
-			Point center = Grid.snappedHorizontally(
-					new Point(((pNodeFace.getX2() - pNodeFace.getX1())/2) + pNodeFace.getX1(), pNodeFace.getY1()));
-			return new Point(center.getX() + offset, center.getY());
+			Point center = GridUtils.snappedHorizontally(
+					new Point(((pNodeFace.x2() - pNodeFace.x1())/2) + pNodeFace.x1(), pNodeFace.y1()));
+			return new Point(center.x() + offset, center.y());
 		}
 		else 
 		{
-			Point center = Grid.snappedVertically( 
-					new Point(pNodeFace.getX1(), ((pNodeFace.getY2() - pNodeFace.getY1())/2) + pNodeFace.getY1()));
-			return new Point(center.getX(), center.getY() + offset);
+			Point center = GridUtils.snappedVertically( 
+					new Point(pNodeFace.x1(), ((pNodeFace.y2() - pNodeFace.y1())/2) + pNodeFace.y1()));
+			return new Point(center.x(), center.y() + offset);
 		}
 	}
 	
@@ -91,17 +92,17 @@ public enum NodeIndex
 		assert pNodeFace != null && pAttachmentSide != null;
 		
 		// Default for horizontal
-		int lengthOfSide = Math.abs(pNodeFace.getX2() - pNodeFace.getX1());
+		int lengthOfSide = Math.abs(pNodeFace.x2() - pNodeFace.x1());
 		int numberOfSpaces = NUM_SPACES_NS;
 		
 		// Adjust if vertical
 		if(pAttachmentSide.isVertical())
 		{
-			lengthOfSide = Math.abs(pNodeFace.getY2() - pNodeFace.getY1());
+			lengthOfSide = Math.abs(pNodeFace.y2() - pNodeFace.y1());
 			numberOfSpaces = NUM_SPACES_EW;
 		}
 		
-		int unadjustedSpace = Math.round((lengthOfSide - MARGIN * 2) / (float) numberOfSpaces);
+		int unadjustedSpace = GeomUtils.round((lengthOfSide - MARGIN * 2) / (float) numberOfSpaces);
 		// Closest further multiple of 10 at least 10
 		int result = Math.max(SPACE_INCREMENT, unadjustedSpace / SPACE_INCREMENT * SPACE_INCREMENT);
 		return result;

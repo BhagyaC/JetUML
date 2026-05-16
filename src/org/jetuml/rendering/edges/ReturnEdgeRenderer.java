@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -28,10 +28,11 @@ import org.jetuml.diagram.nodes.PointNode;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.GraphicsRenderingContext;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -61,15 +62,15 @@ public final class ReturnEdgeRenderer extends LabeledStraightEdgeRenderer
 		
 		if(pEdge.end() instanceof PointNode) // show nicely in tool bar
 		{
-			return new Line(new Point(end.getX(), end.getY()), new Point(start.getMaxX(), end.getY()));
+			return new Line(new Point(end.x(), end.y()), new Point(start.maxX(), end.y()));
 		}      
-		else if(start.getCenter().getX() < end.getCenter().getX())
+		else if(start.center().x() < end.center().x())
 		{
-			return new Line(new Point(start.getMaxX(), start.getMaxY()), new Point(end.getX(), start.getMaxY()));
+			return new Line(new Point(start.maxX(), start.maxY()), new Point(end.x(), start.maxY()));
 		}
 		else
 		{
-			return new Line(new Point(start.getX(), start.getMaxY()), new Point(end.getMaxX(), start.getMaxY()));
+			return new Line(new Point(start.x(), start.maxY()), new Point(end.maxX(), start.maxY()));
 		}
 	}
 	
@@ -83,8 +84,9 @@ public final class ReturnEdgeRenderer extends LabeledStraightEdgeRenderer
 		canvas.getGraphicsContext2D().scale(scale, scale);
 		Path path = new Path();
 		path.getElements().addAll(new MoveTo(1, offset), new LineTo(BUTTON_SIZE*(1/scale)-1, offset));
-		ToolGraphics.strokeSharpPath(graphics, path, LineStyle.DOTTED);
-		ArrowHeadRenderer.draw(graphics, ArrowHead.V, new Point((int)(BUTTON_SIZE*(1/scale)-1), offset), new Point(1, offset));
+		GraphicsRenderingContext context = new GraphicsRenderingContext(graphics);
+		context.strokePath(path, ColorScheme.get().stroke(), LineStyle.DOTTED);
+		ArrowHeadRenderer.draw(context, ArrowHead.V, new Point((int)(BUTTON_SIZE*(1/scale)-1), offset), new Point(1, offset));
 		return canvas;
 	}
 }

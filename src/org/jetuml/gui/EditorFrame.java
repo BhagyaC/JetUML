@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-
 package org.jetuml.gui;
 
 import static org.jetuml.application.ApplicationResources.RESOURCES;
@@ -31,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +47,7 @@ import org.jetuml.application.FileExtensions;
 import org.jetuml.application.RecentFilesQueue;
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.BooleanPreference;
+import org.jetuml.application.UserPreferences.BooleanPreferenceChangeHandler;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.gui.tips.TipDialog;
@@ -75,29 +76,32 @@ import javafx.stage.Stage;
 /**
  * The main frame that contains panes that contain diagrams.
  */
-public class EditorFrame extends BorderPane
+public class EditorFrame extends BorderPane implements BooleanPreferenceChangeHandler
 {
 	private static final String KEY_LAST_EXPORT_DIR = "lastExportDir";
 	private static final String KEY_LAST_SAVEAS_DIR = "lastSaveAsDir";
 	private static final String KEY_LAST_IMAGE_FORMAT = "lastImageFormat";
 	private static final String USER_MANUAL_URL = "https://www.jetuml.org/docs/user-guide.html";
 	
-	private static final String[] IMAGE_FORMATS = validFormats("png", "jpg", "gif", "bmp");
+	private static final String[] IMAGE_FORMATS = validFormats("png", "svg", "jpg", "gif", "bmp");
 	
-	private Stage aMainStage;
+	private final Stage aMainStage;
+	private final Stage aDialogStage;
+	private final String aDarkModeCSSPath = getClass().getResource("DarkMode.css").toExternalForm();
 	private RecentFilesQueue aRecentFiles = new RecentFilesQueue();
 	private Menu aRecentFilesMenu;
 	private WelcomeTab aWelcomeTab;
-	
+
 	/**
 	 * Constructs a blank frame with a desktop pane but no diagram window.
 	 * 
 	 * @param pMainStage The main stage used by the UMLEditor
-	 * @param pOpenWith An optional diagram to open the application with.
+	 * @param pDialogStage The stage for all dialogs.
 	 */
-	public EditorFrame(Stage pMainStage) 
+	public EditorFrame(Stage pMainStage, Stage pDialogStage) 
 	{
 		aMainStage = pMainStage;
+		aDialogStage = pDialogStage;
 		aRecentFiles.deserialize(Preferences.userNodeForPackage(JetUML.class).get("recent", "").trim());
 
 		MenuBar menuBar = new MenuBar();
@@ -118,6 +122,8 @@ public class EditorFrame extends BorderPane
 		aWelcomeTab = new WelcomeTab(newDiagramHandlers);
 		showWelcomeTabIfNecessary();
 		
+		UserPreferences.instance().addBooleanPreferenceChangeHandler(this);
+		
 		setOnKeyPressed(e -> 
 		{
 			if( !isWelcomeTabShowing() && e.isShiftDown() )
@@ -135,14 +141,14 @@ public class EditorFrame extends BorderPane
 	}
 	
 	/* Returns the subset of pDesiredFormats for which a registered image writer 
-	 * claims to recognized the format */
+	 * claims to recognize the format */
 	private static String[] validFormats(String... pDesiredFormats)
 	{
 		List<String> recognizedWriters = Arrays.asList(ImageIO.getWriterFormatNames());
 		List<String> validFormats = new ArrayList<>();
 		for( String format : pDesiredFormats )
 		{
-			if( recognizedWriters.contains(format))
+			if( recognizedWriters.contains(format) || "svg".equals(format))
 			{
 				validFormats.add(format);
 			}
@@ -236,9 +242,15 @@ public class EditorFrame extends BorderPane
 						UserPreferences.instance().getBoolean(BooleanPreference.autoEditNode),
 						event -> UserPreferences.instance().setBoolean(BooleanPreference.autoEditNode, 
 								((CheckMenuItem) event.getSource()).isSelected())),
+				
+				factory.createCheckMenuItem("view.dark_mode", false, 
+						UserPreferences.instance().getBoolean(BooleanPreference.darkMode),
+						event -> UserPreferences.instance().setBoolean(BooleanPreference.darkMode, 
+								((CheckMenuItem) event.getSource()).isSelected())),
 		
-				factory.createMenuItem("view.diagram_size", false, event -> new DiagramSizeDialog(aMainStage).show()),
-				factory.createMenuItem("view.font_size", false, event -> new FontSizeDialog(aMainStage).show()),
+				factory.createMenuItem("view.diagram_size", false, event -> new DiagramSizeDialog(aDialogStage).show()),
+				factory.createMenuItem("view.font", false, event -> new FontDialog(aDialogStage).show()),
+				factory.createMenuItem("view.notifications", false, event -> new NotificationTimeDialog(aDialogStage).show()),
 				factory.createMenuItem("view.zoom_in", true, event -> getSelectedDiagramTab().zoomIn()),
 				factory.createMenuItem("view.zoom_out", true, event -> getSelectedDiagramTab().zoomOut()),
 				factory.createMenuItem("view.reset_zoom", true, event -> getSelectedDiagramTab().resetZoom())));
@@ -248,9 +260,9 @@ public class EditorFrame extends BorderPane
 	{
 		MenuFactory factory = new MenuFactory(RESOURCES);
 		pMenuBar.getMenus().add(factory.createMenu("help", false,
-				factory.createMenuItem("help.tips", false, event -> new TipDialog(aMainStage).show()),
+				factory.createMenuItem("help.tips", false, event -> new TipDialog(aDialogStage).show()),
 				factory.createMenuItem("help.guide", false, event -> JetUML.openBrowser(USER_MANUAL_URL)),
-				factory.createMenuItem("help.about", false, event -> new AboutDialog(aMainStage).show())));
+				factory.createMenuItem("help.about", false, event -> new AboutDialog(aDialogStage).show())));
 	}
 	
 	/*
@@ -261,12 +273,12 @@ public class EditorFrame extends BorderPane
 	{
 		for( Tab tab : tabs() )
 		{
-			if(tab instanceof DiagramTab)
+			if(tab instanceof DiagramTab diagramTab)
 			{	
-				if(((DiagramTab) tab).getFile().isPresent()	&& 
-						((DiagramTab) tab).getFile().get().getAbsoluteFile().equals(pFile.getAbsoluteFile())) 
+				if(diagramTab.getFile().isPresent()	&& 
+						diagramTab.getFile().get().getAbsoluteFile().equals(pFile.getAbsoluteFile())) 
 				{
-					return Optional.of((DiagramTab)tab);
+					return Optional.of(diagramTab);
 				}
 			}
 		}
@@ -398,10 +410,7 @@ public class EditorFrame extends BorderPane
 	    final ClipboardContent content = new ClipboardContent();
 	    content.putImage(image);
 	    clipboard.setContent(content);
-		Alert alert = new Alert(AlertType.INFORMATION, RESOURCES.getString("dialog.to_clipboard.message"), ButtonType.OK);
-		alert.initOwner(aMainStage);
-		alert.setHeaderText(RESOURCES.getString("dialog.to_clipboard.title"));
-		alert.showAndWait();
+		NotificationService.instance().spawnNotification(RESOURCES.getString("dialog.to_clipboard.message"), ToastNotification.Type.SUCCESS);
 	}
 
 	/* @pre there is a selected diagram tab, not just the welcome tab */
@@ -425,7 +434,7 @@ public class EditorFrame extends BorderPane
 			alert.setHeaderText(RESOURCES.getString("dialog.close.title"));
 			alert.showAndWait();
 
-			if (alert.getResult() == ButtonType.YES) 
+			if(alert.getResult() == ButtonType.YES) 
 			{
 				removeGraphFrameFromTabbedPane(diagramTab);
 			}
@@ -453,7 +462,7 @@ public class EditorFrame extends BorderPane
 			alert.setHeaderText(RESOURCES.getString("dialog.close.title"));
 			alert.showAndWait();
 
-			if (alert.getResult() == ButtonType.YES) 
+			if(alert.getResult() == ButtonType.YES) 
 			{
 				removeGraphFrameFromTabbedPane(pDiagramTab);
 			}
@@ -579,26 +588,33 @@ public class EditorFrame extends BorderPane
 		DiagramTab frame = getSelectedDiagramTab();
 		try (OutputStream out = new FileOutputStream(file)) 
 		{
-			BufferedImage image = getBufferedImage(frame); 
-			if("jpg".equals(format))	// to correct the display of JPEG/JPG images (removes red hue)
+			if ("svg".equals(format))
 			{
-				BufferedImage imageRGB = new BufferedImage(image.getWidth(), image.getHeight(), Transparency.OPAQUE);
-				Graphics2D graphics = imageRGB.createGraphics();
-				graphics.drawImage(image, 0,  0, null);
-				ImageIO.write(imageRGB, format, out);
-				graphics.dispose();
-			}
-			else if("bmp".equals(format))	// to correct the BufferedImage type
-			{
-				BufferedImage imageRGB = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-				Graphics2D graphics = imageRGB.createGraphics();
-				graphics.drawImage(image, 0, 0, Color.WHITE, null);
-				ImageIO.write(imageRGB, format, out);
-				graphics.dispose();
+				out.write(frame.createSvgImage().getBytes(StandardCharsets.UTF_8));
 			}
 			else
 			{
-				ImageIO.write(image, format, out);
+				BufferedImage image = getBufferedImage(frame); 
+				if("jpg".equals(format))	// to correct the display of JPEG/JPG images (removes red hue)
+				{
+					BufferedImage imageRGB = new BufferedImage(image.getWidth(), image.getHeight(), Transparency.OPAQUE);
+					Graphics2D graphics = imageRGB.createGraphics();
+					graphics.drawImage(image, 0,  0, null);
+					ImageIO.write(imageRGB, format, out);
+					graphics.dispose();
+				}
+				else if("bmp".equals(format))	// to correct the BufferedImage type
+				{
+					BufferedImage imageRGB = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+					Graphics2D graphics = imageRGB.createGraphics();
+					graphics.drawImage(image, 0, 0, Color.WHITE, null);
+					ImageIO.write(imageRGB, format, out);
+					graphics.dispose();
+				}
+				else
+				{
+					ImageIO.write(image, format, out);
+				}
 			}
 		} 
 		catch(IOException exception) 
@@ -637,7 +653,7 @@ public class EditorFrame extends BorderPane
 		return fileChooser;
 	}
 
-	private BufferedImage getBufferedImage(DiagramTab pDiagramTab) 
+	private static BufferedImage getBufferedImage(DiagramTab pDiagramTab) 
 	{
 		return SwingFXUtils.fromFXImage(pDiagramTab.createImage(), null);
 	}
@@ -657,7 +673,7 @@ public class EditorFrame extends BorderPane
 	public void exit() 
 	{
 		final int modcount = getNumberOfUsavedDiagrams();
-		if (modcount > 0) 
+		if(modcount > 0) 
 		{
 			Alert alert = new Alert(AlertType.CONFIRMATION, 
 					MessageFormat.format(RESOURCES.getString("dialog.exit.ok"), new Object[] { Integer.valueOf(modcount) }),
@@ -668,7 +684,7 @@ public class EditorFrame extends BorderPane
 			alert.setHeaderText(RESOURCES.getString("dialog.exit.title"));
 			alert.showAndWait();
 
-			if (alert.getResult() == ButtonType.YES) 
+			if(alert.getResult() == ButtonType.YES) 
 			{
 				Preferences.userNodeForPackage(JetUML.class).put("recent", aRecentFiles.serialize());
 				System.exit(0);
@@ -680,6 +696,16 @@ public class EditorFrame extends BorderPane
 			System.exit(0);
 		}
 	}		
+	
+	/**
+	 * Getter for the dialog stage.
+	 * 
+	 * @return The dialog stage.
+	 */
+	public Stage getDialogStage()
+	{
+		return aDialogStage;
+	}
 	
 	private List<Tab> tabs()
 	{
@@ -729,5 +755,23 @@ public class EditorFrame extends BorderPane
 		pTab.close();
 		tabs().remove(pTab);
 		showWelcomeTabIfNecessary();
+	}
+	
+	@Override
+	public void booleanPreferenceChanged(BooleanPreference pPreference)
+	{
+		if( pPreference == BooleanPreference.darkMode )
+		{
+			if( UserPreferences.instance().getBoolean(pPreference) )
+			{
+				getScene().getStylesheets().add(aDarkModeCSSPath);
+				aDialogStage.getScene().getStylesheets().add(aDarkModeCSSPath);
+			}
+			else
+			{
+				getScene().getStylesheets().remove(aDarkModeCSSPath);
+				aDialogStage.getScene().getStylesheets().remove(aDarkModeCSSPath);
+			}
+		}
 	}
 }

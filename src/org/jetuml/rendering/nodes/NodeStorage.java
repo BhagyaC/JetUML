@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -43,11 +43,11 @@ import org.jetuml.geom.Rectangle;
  	 */
  	public Rectangle getBounds(Node pNode, Function<Node, Rectangle> pBoundCalculator)
  	{
- 		if (!aIsActivated)
+ 		if(!aIsActivated)
  		{
  			return pBoundCalculator.apply(pNode);
  		}
- 		else if (aIsActivated && aNodeBounds.containsKey(pNode))
+ 		else if(aIsActivated && aNodeBounds.containsKey(pNode))
  		{
  			return aNodeBounds.get(pNode);
  		}

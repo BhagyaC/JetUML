@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,14 +20,13 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
-import static org.jetuml.testutils.GeometryUtils.osDependent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jetuml.JavaFXLoader;
 import org.jetuml.application.UserPreferences;
 import org.jetuml.application.UserPreferences.IntegerPreference;
+import org.jetuml.application.UserPreferences.StringPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.nodes.FieldNode;
@@ -37,9 +36,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 public class TestObjectNodeViewer
 {
+	private static String userDefinedFontName;
 	private static int userDefinedFontSize;
 	private ObjectNode aNode; 
 	private FieldNode aField1;
@@ -49,8 +51,10 @@ public class TestObjectNodeViewer
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontName = UserPreferences.instance().getString(UserPreferences.StringPreference.fontName);
+		UserPreferences.instance().setString(StringPreference.fontName, UserPreferences.DEFAULT_FONT_NAME);
 		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 		JavaFXLoader.load();
 	}
 	
@@ -69,6 +73,7 @@ public class TestObjectNodeViewer
 	@AfterAll
 	public static void restorePreferences()
 	{
+		UserPreferences.instance().setString(StringPreference.fontName, userDefinedFontName);
 		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
 	}
 	
@@ -79,19 +84,21 @@ public class TestObjectNodeViewer
 	}
 	
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	public void testGetSplitPosition_OneField()
 	{
 		aNode.addChild(aField1);
-		assertEquals(osDependent(12, 11, 12), ObjectNodeRenderer.getSplitPosition(aNode));
+		assertEquals(12, ObjectNodeRenderer.getSplitPosition(aNode));
 	}
 	
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	public void testGetSplitPosition_TwoFields()
 	{
 		aNode.addChild(aField1);
 		aNode.addChild(aField2);
 		aField2.setName("XXXXX");
-		assertEquals(osDependent(47, 49, 58), ObjectNodeRenderer.getSplitPosition(aNode));
+		assertEquals(47, ObjectNodeRenderer.getSplitPosition(aNode));
 	}
 	
 	@Test
@@ -102,39 +109,40 @@ public class TestObjectNodeViewer
 	}
 	
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	public void testGetYPosition_TwoFields()
 	{
 		aNode.addChild(aField1);
 		aNode.addChild(aField2);
 		assertEquals(70, ObjectNodeRenderer.getYPosition(aNode, aField1));
-		assertEquals(osDependent(95, 95, 101), ObjectNodeRenderer.getYPosition(aNode, aField2));
+		assertEquals(95, ObjectNodeRenderer.getYPosition(aNode, aField2));
 	}
 	
 	@Test
 	public void testGetBounds_NoFieldNoName()
 	{
 		aNode.setName("");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(80, aViewer.getBounds(aNode).getWidth());
-		assertEquals(60, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(80, aViewer.getBounds(aNode).width());
+		assertEquals(60, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
 	public void testGetBounds_shortNameNoField()
 	{
 		aNode.setName("X");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(80, aViewer.getBounds(aNode).getWidth());
-		assertEquals(60, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(80, aViewer.getBounds(aNode).width());
+		assertEquals(60, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
 	public void testGetBounds_LongNameNoField()
 	{
 		aNode.setName("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertTrue(aViewer.getBounds(aNode).getWidth() > 80);
-		assertEquals(60, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertTrue(aViewer.getBounds(aNode).width() > 80);
+		assertEquals(60, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
@@ -142,9 +150,9 @@ public class TestObjectNodeViewer
 	{
 		aNode.setName("");
 		aNode.addChild(aField1);
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(80, aViewer.getBounds(aNode).getWidth());
-		assertEquals(90, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(80, aViewer.getBounds(aNode).width());
+		assertEquals(90, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
@@ -153,8 +161,8 @@ public class TestObjectNodeViewer
 		aNode.setName("X");
 		aNode.addChild(aField1);
 		aNode.addChild(aField2);
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(80, aViewer.getBounds(aNode).getWidth());
-		assertEquals(120, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(80, aViewer.getBounds(aNode).width());
+		assertEquals(120, aViewer.getBounds(aNode).height());
 	}
 }

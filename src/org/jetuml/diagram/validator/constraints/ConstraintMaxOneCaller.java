@@ -1,8 +1,8 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
- *     
+ * Copyright (C) 2025 by McGill University.
+ *
  * See: https://github.com/prmr/JetUML
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,54 +18,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *******************************************************************************/
-package org.jetuml.geom;
+package org.jetuml.diagram.validator.constraints;
+
+import org.jetuml.diagram.Diagram;
+import org.jetuml.diagram.Edge;
+import org.jetuml.diagram.edges.CallEdge;
+import org.jetuml.diagram.nodes.CallNode;
+import org.jetuml.diagram.validator.EdgeConstraint;
+import java.util.List;
 
 /**
- * Represents one side of a rectangular node.
+ * There can be at most one caller to a call node.
  */
-public enum Side 
+public final class ConstraintMaxOneCaller implements EdgeConstraint
 {
-	TOP, BOTTOM, RIGHT, LEFT;
-	
-	/**
-	 * @return True if this side is a horizontal line, that is, 
-	 * the top or the bottom side.
-	 */
-	public boolean isHorizontal()
-	{
-		return this == TOP || this == BOTTOM;
-	}
-	
-	/**
-	 * @return True if this side is a vertical line, that is, the 
-	 * right or the left side.
-	 */
-	public boolean isVertical()
-	{
-		return this == RIGHT || this == LEFT;
-	}
-	
-	/**
-	 * @return The side opposite the current side on
-	 *     the rectangle.
-	 */
-	public Side mirrored()
-	{
-		if( this == TOP )
-		{
-			return BOTTOM;
-		}
-		else if( this == BOTTOM)
-		{
-			return TOP;
-		}
-		else if( this == RIGHT)
-		{
-			return LEFT;
-		}
-		else 
-		{
-			return RIGHT;
-		}
-	}
+    @Override
+    public boolean satisfied(Edge pEdge, Diagram pDiagram)
+    {
+        return pDiagram.allNodes().stream()								// Nodes
+                .filter(CallNode.class::isInstance)						// Call nodes
+                .map(node -> pDiagram.edgesTo(node, CallEdge.class))	// Lists of callers to call nodes
+                .mapToInt(List::size)									// Size of such lists
+                .allMatch(size -> size <= 1);
+    }
 }

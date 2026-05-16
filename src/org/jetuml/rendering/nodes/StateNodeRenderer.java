@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,8 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.StateNode;
@@ -28,13 +30,11 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * An object to render a StateNode.
@@ -43,7 +43,8 @@ public final class StateNodeRenderer extends AbstractNodeRenderer
 {
 	private static final int DEFAULT_WIDTH = 80;
 	private static final int DEFAULT_HEIGHT = 60;
-	private static final StringRenderer NAME_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	private static final int PADDING = 15;
+	private static final StringRenderer LABEL_RENDERER = new StringRenderer(Alignment.CENTER);
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -60,19 +61,23 @@ public final class StateNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		final Rectangle bounds = getBounds(pElement);
-		RenderingUtils.drawRoundedRectangle(pGraphics, bounds);
-		NAME_VIEWER.draw(((StateNode)pElement).getName(), pGraphics, bounds);
+		pContext.drawRoundedRectangle(bounds, ColorScheme.get().fill(), ColorScheme.get().stroke(), 
+				Optional.of(ColorScheme.get().dropShadow()));
+		String name = ((StateNode)pElement).getName();
+		LABEL_RENDERER.draw(name, 
+				bounds.centerSlice(LABEL_RENDERER.getDimension(name).height()),
+				pContext);
 	}
 	
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		Dimension bounds = NAME_VIEWER.getDimension(((StateNode)pNode).getName());
-		return new Rectangle(pNode.position().getX(), pNode.position().getY(), 
-				Math.max(bounds.width(), DEFAULT_WIDTH), Math.max(bounds.height(), DEFAULT_HEIGHT));
+		Dimension bounds = LABEL_RENDERER.getDimension(((StateNode)pNode).getName());
+		return new Rectangle(pNode.position().x(), pNode.position().y(), 
+				Math.max(bounds.width() + PADDING, DEFAULT_WIDTH), Math.max(bounds.height() + PADDING, DEFAULT_HEIGHT));
 	}
 	
 	@Override

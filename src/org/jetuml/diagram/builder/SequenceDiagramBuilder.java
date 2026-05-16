@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -64,23 +64,23 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 	protected List<DiagramElement> getCoRemovals(DiagramElement pElement)
 	{
 		List<DiagramElement> result = super.getCoRemovals(pElement);
-		if(pElement instanceof Node)
+		if(pElement instanceof Node node)
 		{
-			result.addAll(getNodeUpstreams((Node)pElement));
-			result.addAll(getNodeDownStreams((Node)pElement));
+			result.addAll(getNodeUpstreams(node));
+			result.addAll(getNodeDownStreams(node));
 		}
-		else if(pElement instanceof Edge)
+		else if(pElement instanceof Edge edge)
 		{
-			Optional<DiagramElement> edgeStart = ((SequenceDiagramRenderer)renderer()).getStartNodeIfExclusive((Edge)pElement);
+			Optional<DiagramElement> edgeStart = ((SequenceDiagramRenderer)renderer()).getStartNodeIfExclusive(edge);
 			if(edgeStart.isPresent())
 			{
 				result.add(edgeStart.get());
 			}
-			result.addAll(getEdgeDownStreams((Edge)pElement));
+			result.addAll(getEdgeDownStreams(edge));
 		}	
 		result.addAll(getCorrespondingReturnEdges(result));
 		//Implicit parameter nodes downstream of constructor calls should not be removed
-		if (pElement instanceof ConstructorEdge) 
+		if(pElement instanceof ConstructorEdge) 
 		{
 			result.removeIf(element -> element instanceof ImplicitParameterNode);
 		}
@@ -126,7 +126,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 		final ImplicitParameterNode parent = endParent;
 		pOperation.add(new SimpleOperation(()-> parent.addChild(end),
 				()-> parent.removeChild(end)));
-		int insertionIndex = computeInsertionIndex(start, pStartPoint.getY());
+		int insertionIndex = computeInsertionIndex(start, pStartPoint.y());
 
 		pEdge.connect(start, end);
 		pOperation.add(new SimpleOperation(()-> aDiagramRenderer.diagram().addEdge(insertionIndex, pEdge),
@@ -146,7 +146,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 	{
 		for( CallEdge callee : getCalls(pCaller))
 		{
-			if( renderer().getConnectionPoints(callee).getY1() > pY )
+			if( renderer().getConnectionPoints(callee).y1() > pY )
 			{
 				return aDiagramRenderer.diagram().indexOf(callee);
 			}
@@ -184,7 +184,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 		{
 			if( node instanceof ImplicitParameterNode && aDiagramRenderer.contains(node, pPoint) )
 			{
-				if( !(pPoint.getY() < implicitParameterRenderer().getTopRectangle(node).getMaxY() + CALL_NODE_YGAP) )
+				if( !(pPoint.y() < implicitParameterRenderer().getTopRectangle(node).maxY() + CALL_NODE_YGAP) )
 				{
 					return Optional.of( (ImplicitParameterNode)node );
 				}
@@ -208,9 +208,9 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 		Set<DiagramElement> returnEdges = new HashSet<>();
 		for( DiagramElement element: pElements )
 		{
-			if( element instanceof CallEdge )
+			if( element instanceof CallEdge edge)
 			{
-				Optional<Edge> returnEdge = getReturnEdge((Edge) element);
+				Optional<Edge> returnEdge = getReturnEdge(edge);
 				if( returnEdge.isPresent() )
 				{
 					returnEdges.add(returnEdge.get());
@@ -242,7 +242,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 		}
 		for( Edge edge : diagram().edges() )
 		{
-			if ( edge.end() == pNode && edge.getClass() == ConstructorEdge.class )
+			if( edge.end() == pNode && edge.getClass() == ConstructorEdge.class )
 			{
 				return true;
 			}
@@ -346,7 +346,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 		}
 		for( Edge edge : diagram().edges() )
 		{
-			if ( edge.end() == pNode && edge.getClass() == ConstructorEdge.class )
+			if( edge.end() == pNode && edge.getClass() == ConstructorEdge.class )
 			{
 				return Optional.of(edge);
 			}
@@ -434,7 +434,7 @@ public class SequenceDiagramBuilder extends DiagramBuilder
 				downstreamElements.addAll(getEdgeDownStreams(edge));
 			}
 		}
-		else if ( pNode.getClass() == ImplicitParameterNode.class )
+		else if( pNode.getClass() == ImplicitParameterNode.class )
 		{
 			downstreamElements.addAll(pNode.getChildren());
 			for( Node child: pNode.getChildren() )

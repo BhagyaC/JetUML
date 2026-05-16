@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -35,22 +35,23 @@ import org.jetuml.diagram.edges.DependencyEdge;
 import org.jetuml.diagram.edges.GeneralizationEdge;
 import org.jetuml.diagram.edges.SingleLabelEdge;
 import org.jetuml.diagram.edges.ThreeLabelEdge;
+import org.jetuml.geom.Alignment;
 import org.jetuml.geom.Dimension;
-import org.jetuml.geom.EdgePath;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.ClassDiagramRenderer;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.EdgePath;
 import org.jetuml.rendering.EdgePriority;
 import org.jetuml.rendering.LineStyle;
+import org.jetuml.rendering.RenderingContext;
+import org.jetuml.rendering.GraphicsRenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.ToolGraphics;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -61,16 +62,11 @@ import javafx.scene.shape.Shape;
  */
 public class StoredEdgeRenderer extends AbstractEdgeRenderer
 {
-	private static final int BUTTON_SIZE = 25;
-	private static final int OFFSET = 3;
-	private static final int MAX_DISTANCE = 3;
-	
-	private static final StringRenderer TOP_CENTERED_STRING_VIEWER = StringRenderer.get(Alignment.TOP_CENTER);
-	private static final StringRenderer BOTTOM_CENTERED_STRING_VIEWER = StringRenderer.get(Alignment.BOTTOM_CENTER);
-	private static final StringRenderer LEFT_JUSTIFIED_STRING_VIEWER = StringRenderer.get(Alignment.TOP_LEFT);
+	private static final StringRenderer TOP_CENTERED_STRING_VIEWER = new StringRenderer(Alignment.CENTER);
+	private static final StringRenderer BOTTOM_CENTERED_STRING_VIEWER = new StringRenderer(Alignment.CENTER);
+	private static final StringRenderer LEFT_JUSTIFIED_STRING_VIEWER = new StringRenderer(Alignment.LEFT);
 	private static final int SINGLE_CHAR_WIDTH = LEFT_JUSTIFIED_STRING_VIEWER.getDimension(" ").width();
 	private static final int SIGLE_CHAR_HEIGHT = LEFT_JUSTIFIED_STRING_VIEWER.getDimension(" ").height();
-	private static final int MAX_LENGTH_FOR_NORMAL_FONT = 15;
 	private static final int DEGREES_180 = 180;
 	
 	/**
@@ -109,10 +105,9 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	private static ArrowHead getArrowStart(Edge pEdge)
 	{
 		assert pEdge !=null;
-		if (pEdge instanceof AggregationEdge)
+		if(pEdge instanceof AggregationEdge edge)
 		{
-			AggregationEdge edge = (AggregationEdge) pEdge;
-			if (edge.getType() == Type.Composition)
+			if(edge.getType() == Type.Composition)
 			{
 				return ArrowHead.BLACK_DIAMOND;
 			}
@@ -121,17 +116,16 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 				return ArrowHead.DIAMOND;
 			}
 		}
-		else if (pEdge instanceof AssociationEdge)
+		else if(pEdge instanceof AssociationEdge edge)
 		{
-			if (((AssociationEdge) pEdge).getDirectionality() == Directionality.Bidirectional)
+			if(edge.getDirectionality() == Directionality.Bidirectional)
 			{
 				return ArrowHead.V;
 			}
 		}
-		else if (pEdge instanceof DependencyEdge)
+		else if(pEdge instanceof DependencyEdge edge)
 		{
-			DependencyEdge edge = (DependencyEdge) pEdge;
-			if (edge.getDirectionality() == DependencyEdge.Directionality.Bidirectional)
+			if(edge.getDirectionality() == DependencyEdge.Directionality.Bidirectional)
 			{
 				return ArrowHead.V;
 			}
@@ -148,7 +142,7 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	private static ArrowHead getArrowEnd(Edge pEdge)
 	{
 		assert pEdge !=null;
-		if (pEdge instanceof GeneralizationEdge)
+		if(pEdge instanceof GeneralizationEdge)
 		{
 			return ArrowHead.TRIANGLE;
 		}
@@ -156,14 +150,13 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		{
 			return ArrowHead.NONE;
 		}
-		else if (pEdge instanceof DependencyEdge)
+		else if(pEdge instanceof DependencyEdge)
 		{
 			return ArrowHead.V;
 		}
-		else if (pEdge instanceof AssociationEdge)
+		else if(pEdge instanceof AssociationEdge edge)
 		{
-			AssociationEdge edge = (AssociationEdge) pEdge;
-			if (edge.getDirectionality() == AssociationEdge.Directionality.Unidirectional || 
+			if(edge.getDirectionality() == AssociationEdge.Directionality.Unidirectional || 
 					edge.getDirectionality() == AssociationEdge.Directionality.Bidirectional)
 			{
 				return ArrowHead.V;
@@ -184,11 +177,11 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		assert pEdge != null;
 		Path shape = new Path();
 		EdgePath path = getStoredEdgePath(pEdge);
-		shape.getElements().add(new MoveTo(path.getStartPoint().getX(), path.getStartPoint().getY()));
-		for (int i = 1; i < path.size(); i++)
+		shape.getElements().add(new MoveTo(path.getStartPoint().x(), path.getStartPoint().y()));
+		for(int i = 1; i < path.size(); i++)
 		{
 			Point point = path.getPointByIndex(i);
-			shape.getElements().add(new LineTo(point.getX(), point.getY()));
+			shape.getElements().add(new LineTo(point.x(), point.y()));
 		}
 		return shape;
 	}
@@ -202,8 +195,8 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	{
 		Point point1 = getStoredEdgePath(pEdge).getStartPoint();
 		Point point2 = getStoredEdgePath(pEdge).getEndPoint();
-		return point1.getX() < point2.getX() && point1.getY() > point2.getY() || 
-				point1.getX() > point2.getX() && point1.getY() < point2.getY();
+		return point1.x() < point2.x() && point1.y() > point2.y() || 
+				point1.x() > point2.x() && point1.y() < point2.y();
 	}
 	
 	/*
@@ -215,10 +208,10 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	 * @param pString the string to draw 
 	 * @param pCenter true if the string should be centered along the segment
 	 */
-	private void drawLabel(GraphicsContext pGraphics, Line pSegment, 
+	private static void drawLabel(RenderingContext pContext, Line pSegment, 
 			ArrowHead pArrowHead, String pString, boolean pCenter, boolean pIsStepUp)
 	{
-		if (pString == null || pString.length() == 0)
+		if(pString == null || pString.length() == 0)
 		{
 			return;
 		}
@@ -226,22 +219,22 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		Rectangle bounds = getLabelBounds(pSegment, pArrowHead, label, pCenter, pIsStepUp);
 		if(pCenter) 
 		{
-			if ( pSegment.getY2() >= pSegment.getY1() )
+			if( pSegment.y2() >= pSegment.y1() )
 			{
-				TOP_CENTERED_STRING_VIEWER.draw(label, pGraphics, bounds);
+				TOP_CENTERED_STRING_VIEWER.draw(label, bounds, pContext);
 			}
 			else
 			{
-				BOTTOM_CENTERED_STRING_VIEWER.draw(label, pGraphics, bounds);
+				BOTTOM_CENTERED_STRING_VIEWER.draw(label, bounds, pContext);
 			}
 		}
 		else
 		{
-			LEFT_JUSTIFIED_STRING_VIEWER.draw(label, pGraphics, bounds);
+			LEFT_JUSTIFIED_STRING_VIEWER.draw(label, bounds, pContext);
 		}
 	}
 	
-	private String wrapLabel(String pLabel, Line pSegment) 
+	private static String wrapLabel(String pLabel, Line pSegment) 
 	{
 		Dimension distances = pSegment.distanceBetweenPoints();
 		int lineLength = MAX_LENGTH_FOR_NORMAL_FONT;
@@ -252,7 +245,7 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 			double angleInDegrees = Math.toDegrees(Math.atan(distanceInYPerChar/distanceInXPerChar));
 			lineLength = Math.max(MAX_LENGTH_FOR_NORMAL_FONT, (int)((distances.width() / 4) * (1 - angleInDegrees / DEGREES_180)));
 		}
-		return StringRenderer.wrapString(pLabel, lineLength);
+		return wrapString(pLabel, lineLength);
 	}
 	
 	/*
@@ -268,11 +261,11 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	{
 		if(pLabel == null || pLabel.isEmpty())
 		{
-			return new Rectangle(pSegment.getX2(), pSegment.getY2(), 0, 0);
+			return new Rectangle(pSegment.x2(), pSegment.y2(), 0, 0);
 		}
 		Dimension textDimensions = TOP_CENTERED_STRING_VIEWER.getDimension(pLabel);
 		Point attachmentPoint = getAttachmentPoint(pSegment, pArrow, textDimensions, pCenter, pIsStepUp);
-		return new Rectangle(attachmentPoint.getX(), attachmentPoint.getY(), textDimensions.width(), textDimensions.height());
+		return new Rectangle(attachmentPoint.x(), attachmentPoint.y(), textDimensions.width(), textDimensions.height());
 	}
 
 	/*
@@ -284,10 +277,10 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		final int gap = 3;
 		double xoff = gap;
 		double yoff = -gap - pDimension.height();
-		Point attach = pSegment.getPoint2();
+		Point attach = pSegment.point2();
 		if( pCenter )
 		{
-			if( pSegment.getX1() > pSegment.getX2()) 
+			if( pSegment.x1() > pSegment.x2()) 
 			{ 
 				return getAttachmentPoint(pSegment.reversed(), pArrow, pDimension, pCenter, pIsStepUp); 
 			}
@@ -304,19 +297,19 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 			{
 				if(pDimension.width() > pSegment.distanceBetweenPoints().width())
 				{
-					attach = new Point(pSegment.getX2() + (pDimension.width() / 2) + gap, 
-							(pSegment.getY1() + pSegment.getY2()) / 2);
+					attach = new Point(pSegment.x2() + (pDimension.width() / 2) + gap, 
+							(pSegment.y1() + pSegment.y2()) / 2);
 				}
 				xoff = -pDimension.width() / 2;
 			}
 		}
 		else 
 		{
-			if(pSegment.getX1() < pSegment.getX2())
+			if(pSegment.x1() < pSegment.x2())
 			{
 				xoff = -gap - pDimension.width();
 			}
-			if(pSegment.getY1() > pSegment.getY2())
+			if(pSegment.y1() > pSegment.y2())
 			{
 				yoff = gap;
 			}
@@ -325,15 +318,15 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 				Rectangle arrowBounds = ArrowHeadRenderer.getBounds(pArrow, pSegment); 
 				if(pSegment.isHorizontal())
 				{
-					yoff -= arrowBounds.getHeight() / 2;
+					yoff -= arrowBounds.height() / 2;
 				}
 				else if(pSegment.isVertical())
 				{
-					xoff += arrowBounds.getWidth() / 2;
+					xoff += arrowBounds.width() / 2;
 				}
 			}
 		}
-		return new Point((int) (attach.getX() + xoff), (int) (attach.getY() + yoff));
+		return new Point((int) (attach.x() + xoff), (int) (attach.y() + yoff));
 	}
 	
 	/**
@@ -342,12 +335,11 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	 * @return the string start label for pEdge
 	 * @pre pEdge != null
 	 */
-	private String getStartLabel(Edge pEdge)
+	private static String getStartLabel(Edge pEdge)
 	{
 		assert pEdge !=null;
-		if (pEdge instanceof ThreeLabelEdge)
+		if(pEdge instanceof ThreeLabelEdge threeLabelEdge)
 		{
-			ThreeLabelEdge threeLabelEdge = (ThreeLabelEdge) pEdge;
 			return threeLabelEdge.getStartLabel();
 		}
 		else
@@ -362,17 +354,15 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	 * @return the String middle label for pEdge
 	 * @pre pEdge != null
 	 */
-	private String getMiddleLabel(Edge pEdge)
+	private static String getMiddleLabel(Edge pEdge)
 	{
 		assert pEdge !=null;
-		if (pEdge instanceof ThreeLabelEdge)
+		if(pEdge instanceof ThreeLabelEdge threeLabelEdge)
 		{
-			ThreeLabelEdge threeLabelEdge = (ThreeLabelEdge) pEdge;
 			return threeLabelEdge.getMiddleLabel();
 		}
-		else if (pEdge instanceof SingleLabelEdge)
+		else if(pEdge instanceof SingleLabelEdge singleLabelEdge)
 		{
-			SingleLabelEdge singleLabelEdge = (SingleLabelEdge) pEdge;
 			return singleLabelEdge.getMiddleLabel();
 		}
 		else
@@ -387,12 +377,11 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	 * @return the String end label for pEdge
 	 * @pre pEdge != null
 	 */
-	private String getEndLabel(Edge pEdge)
+	private static String getEndLabel(Edge pEdge)
 	{
 		assert pEdge !=null;
-		if (pEdge instanceof ThreeLabelEdge)
+		if(pEdge instanceof ThreeLabelEdge threeLabelEdge)
 		{
-			ThreeLabelEdge threeLabelEdge = (ThreeLabelEdge) pEdge;
 			return threeLabelEdge.getEndLabel();
 		}
 		else
@@ -421,29 +410,29 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics) 
+	public void draw(DiagramElement pElement, RenderingContext pContext) 
 	{
-		assert pElement !=null && pGraphics != null;
+		assert pElement !=null && pContext != null;
 		Edge edge = (Edge) pElement;
 		EdgePath path = getStoredEdgePath(edge);
-		ToolGraphics.strokeSharpPath(pGraphics, getSegmentPath(edge), getLineStyle(edge));
-		ArrowHeadRenderer.draw(pGraphics, getArrowStart(edge), path.getPointByIndex(1), path.getStartPoint());
-		ArrowHeadRenderer.draw(pGraphics, getArrowEnd(edge), path.getPointByIndex(path.size()-2), path.getEndPoint());
+		pContext.strokePath(getSegmentPath(edge), ColorScheme.get().stroke(), getLineStyle(edge));
+		ArrowHeadRenderer.draw(pContext, getArrowStart(edge), path.getPointByIndex(1), path.getStartPoint());
+		ArrowHeadRenderer.draw(pContext, getArrowEnd(edge), path.getPointByIndex(path.size()-2), path.getEndPoint());
 
-		drawLabel(pGraphics, segmentForStartLabel(path), getArrowStart(edge), getStartLabel(edge), false, isStepUp(edge));
-		drawLabel(pGraphics, segmentForMiddleLabel(path), ArrowHead.NONE, getMiddleLabel(edge), true, isStepUp(edge));
-		drawLabel(pGraphics, segmentForEndLabel(path), getArrowEnd(edge), getEndLabel(edge), false, isStepUp(edge));
+		drawLabel(pContext, segmentForStartLabel(path), getArrowStart(edge), getStartLabel(edge), false, isStepUp(edge));
+		drawLabel(pContext, segmentForMiddleLabel(path), ArrowHead.NONE, getMiddleLabel(edge), true, isStepUp(edge));
+		drawLabel(pContext, segmentForEndLabel(path), getArrowEnd(edge), getEndLabel(edge), false, isStepUp(edge));
 	}
 	
 	/*
 	 * @return The line segment used to position
 	 */
-	private Line segmentForStartLabel(EdgePath pPath)
+	private static Line segmentForStartLabel(EdgePath pPath)
 	{
 		return new Line(pPath.getPointByIndex(1), pPath.getStartPoint());
 	}
 	
-	private Line segmentForMiddleLabel(EdgePath pPath)
+	private static Line segmentForMiddleLabel(EdgePath pPath)
 	{
 		// If any point is the same we consider this is a straight path
 		if( pPath.size() == 4 && (pPath.getPointByIndex(0).equals(pPath.getPointByIndex(1)) || 
@@ -455,7 +444,7 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		return new Line( pPath.getPointByIndex(pPath.size() / 2 - 1) , pPath.getPointByIndex(pPath.size() / 2));
 	}
 	
-	private Line segmentForEndLabel(EdgePath pPath)
+	private static Line segmentForEndLabel(EdgePath pPath)
 	{
 		return new Line(pPath.getPointByIndex(pPath.size()-2), pPath.getPointByIndex(pPath.size()-1));
 	}
@@ -467,23 +456,14 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 		Canvas canvas = new Canvas(BUTTON_SIZE, BUTTON_SIZE);
 		Path path = new Path();
 		path.getElements().addAll(new MoveTo(OFFSET, OFFSET), new LineTo(BUTTON_SIZE-OFFSET, BUTTON_SIZE-OFFSET));
-		ToolGraphics.strokeSharpPath(canvas.getGraphicsContext2D(), path, getLineStyle(edge));
+		GraphicsRenderingContext context = new GraphicsRenderingContext(canvas.getGraphicsContext2D());
+		context.strokePath(path, ColorScheme.get().stroke(), getLineStyle(edge));
 		
-		ArrowHeadRenderer.draw(canvas.getGraphicsContext2D(), getArrowEnd(edge), 
+		ArrowHeadRenderer.draw(context, getArrowEnd(edge), 
 				new Point(OFFSET, OFFSET), new Point(BUTTON_SIZE-OFFSET, BUTTON_SIZE - OFFSET));
-		ArrowHeadRenderer.draw(canvas.getGraphicsContext2D(), getArrowStart(edge), 
+		ArrowHeadRenderer.draw(context, getArrowStart(edge), 
 				new Point(BUTTON_SIZE-OFFSET, BUTTON_SIZE - OFFSET), new Point(OFFSET, OFFSET));
 		return canvas;
-	}
-
-	@Override
-	public void drawSelectionHandles(DiagramElement pElement, GraphicsContext pGraphics) 
-	{
-		EdgePath path = getStoredEdgePath((Edge)pElement);
-		if (path != null) 
-		{
-			ToolGraphics.drawHandles(pGraphics, new Line(path.getStartPoint(), path.getEndPoint()));
-		}
 	}
 
 	@Override
@@ -491,7 +471,7 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 	{
 		// Purposefully does not include the arrow head and labels, which create large bounds.
 		EdgePath path = getStoredEdgePath((Edge)pElement);
-		if (path == null)
+		if(path == null)
 		{
 			return false;
 		}
@@ -503,7 +483,7 @@ public class StoredEdgeRenderer extends AbstractEdgeRenderer
 			}
 			Shape fatPath = getShape((Edge)pElement);
 			fatPath.setStrokeWidth(2 * MAX_DISTANCE);
-			return fatPath.contains(pPoint.getX(), pPoint.getY());
+			return fatPath.contains(pPoint.x(), pPoint.y());
 		}
 	}
 

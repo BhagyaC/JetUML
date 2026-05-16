@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,6 +20,8 @@
  *******************************************************************************/
 package org.jetuml.rendering.nodes;
 
+import java.util.Optional;
+
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Node;
 import org.jetuml.diagram.nodes.UseCaseNode;
@@ -28,14 +30,11 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.GeomUtils;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.RenderingUtils;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 
 /**
  * An object to render a UseCaseNode.
@@ -45,7 +44,7 @@ public final class UseCaseNodeRenderer extends AbstractNodeRenderer
 	private static final int DEFAULT_WIDTH = 110;
 	private static final int DEFAULT_HEIGHT = 40;
 	private static final int HORIZONTAL_NAME_PADDING = 30;
-	private static final StringRenderer NAME_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	private static final StringRenderer LABEL_RENDERER = new StringRenderer(Alignment.CENTER);
 	
 	/**
 	 * @param pParent Renderer for the parent diagram.
@@ -62,20 +61,25 @@ public final class UseCaseNodeRenderer extends AbstractNodeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Rectangle bounds = getBounds(pElement);
-		RenderingUtils.drawOval(pGraphics, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Color.WHITE, true);
-		NAME_VIEWER.draw(((UseCaseNode)pElement).getName(), pGraphics, getBounds(pElement));
+		pContext.drawOval(bounds.x(), bounds.y(), bounds.width(), bounds.height(), 
+				ColorScheme.get().fill(), ColorScheme.get().stroke(), 
+				Optional.of(ColorScheme.get().dropShadow()));
+		String name = ((UseCaseNode)pElement).getName();
+		LABEL_RENDERER.draw(name, 
+				getBounds(pElement).centerSlice(LABEL_RENDERER.getDimension(name).height()), 
+				pContext);
 	}
 	
 	@Override
 	protected Rectangle internalGetBounds(Node pNode)
 	{
-		return new Rectangle(pNode.position().getX(), pNode.position().getY(), 
-				Math.max(DEFAULT_WIDTH,  NAME_VIEWER.getDimension(((UseCaseNode)pNode).getName()).width()+
+		return new Rectangle(pNode.position().x(), pNode.position().y(), 
+				Math.max(DEFAULT_WIDTH,  LABEL_RENDERER.getDimension(((UseCaseNode)pNode).getName()).width()+
 						HORIZONTAL_NAME_PADDING), 
-				Math.max(DEFAULT_HEIGHT, NAME_VIEWER.getDimension(((UseCaseNode)pNode).getName()).height()));
+				Math.max(DEFAULT_HEIGHT, LABEL_RENDERER.getDimension(((UseCaseNode)pNode).getName()).height()));
 	}
 	
 	@Override

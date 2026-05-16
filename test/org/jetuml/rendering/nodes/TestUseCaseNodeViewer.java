@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -24,22 +24,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jetuml.JavaFXLoader;
+import org.jetuml.application.UserPreferences;
+import org.jetuml.application.UserPreferences.IntegerPreference;
 import org.jetuml.diagram.Diagram;
 import org.jetuml.diagram.DiagramType;
 import org.jetuml.diagram.nodes.UseCaseNode;
 import org.jetuml.geom.Point;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class TestUseCaseNodeViewer
 {
+	private static int userDefinedFontSize;
 	private UseCaseNode aNode; 
 	private final UseCaseNodeRenderer aViewer = new UseCaseNodeRenderer(DiagramType.newRendererInstanceFor(new Diagram(DiagramType.USECASE)));
 	
 	@BeforeAll
 	public static void setupClass()
 	{
+		userDefinedFontSize = UserPreferences.instance().getInteger(UserPreferences.IntegerPreference.fontSize);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 		JavaFXLoader.load();
 	}
 	
@@ -49,30 +55,36 @@ public class TestUseCaseNodeViewer
 		aNode = new UseCaseNode();
 	}
 	
+	@AfterAll
+	public static void restorePreferences()
+	{
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, userDefinedFontSize);
+	}
+	
 	@Test
 	public void testGetBounds_NoName()
 	{
 		aNode.setName("");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(110, aViewer.getBounds(aNode).getWidth());
-		assertEquals(40, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(110, aViewer.getBounds(aNode).width());
+		assertEquals(40, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
 	public void testGetBounds_ShortName()
 	{
 		aNode.setName("X");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertEquals(110, aViewer.getBounds(aNode).getWidth());
-		assertEquals(40, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertEquals(110, aViewer.getBounds(aNode).width());
+		assertEquals(40, aViewer.getBounds(aNode).height());
 	}
 	
 	@Test
 	public void testGetBounds_LongName()
 	{
 		aNode.setName("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-		assertEquals(new Point(0,0), aViewer.getBounds(aNode).getOrigin());
-		assertTrue(aViewer.getBounds(aNode).getWidth() > 110);
-		assertEquals(40, aViewer.getBounds(aNode).getHeight());
+		assertEquals(new Point(0,0), aViewer.getBounds(aNode).origin());
+		assertTrue(aViewer.getBounds(aNode).width() > 110);
+		assertEquals(40, aViewer.getBounds(aNode).height());
 	}
 }

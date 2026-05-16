@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -21,8 +21,8 @@
 package org.jetuml.gui;
 
 import static org.jetuml.application.ApplicationResources.RESOURCES;
-import static org.jetuml.rendering.FontMetrics.DEFAULT_FONT_SIZE;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.jetuml.application.UserPreferences;
@@ -32,12 +32,14 @@ import org.jetuml.application.UserPreferences.IntegerPreference;
 import org.jetuml.diagram.DiagramElement;
 import org.jetuml.diagram.Prototypes;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.rendering.AccessoriesRenderer;
 import org.jetuml.rendering.DiagramRenderer;
-import org.jetuml.rendering.ToolGraphics;
+import org.jetuml.rendering.GraphicsRenderingContext;
 import org.jetuml.rendering.nodes.AbstractNodeRenderer;
 
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -60,6 +62,7 @@ import javafx.scene.image.ImageView;
 public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChangeHandler
 {
 	private ContextMenu aPopupMenu = new ContextMenu();
+	private DiagramRenderer aDiagramRenderer;
 
 	/**
      * Constructs the tool bar.
@@ -68,6 +71,7 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 	 */
 	public DiagramTabToolBar(DiagramRenderer pDiagramRenderer)
 	{
+		aDiagramRenderer = pDiagramRenderer;
 		setOrientation(Orientation.VERTICAL);
 		setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;"); 
 		ToggleGroup toggleGroup = new ToggleGroup();
@@ -95,7 +99,7 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 		int offset = AbstractNodeRenderer.OFFSET + 3;
 		Canvas canvas = new Canvas(AbstractNodeRenderer.BUTTON_SIZE, AbstractNodeRenderer.BUTTON_SIZE);
 		GraphicsContext graphics = canvas.getGraphicsContext2D();
-		ToolGraphics.drawHandles(graphics, new Rectangle(offset, offset, 
+		new AccessoriesRenderer(new GraphicsRenderingContext(graphics)).drawHandles(new Rectangle(offset, offset, 
 				AbstractNodeRenderer.BUTTON_SIZE - (offset*2), AbstractNodeRenderer.BUTTON_SIZE-(offset*2) ));
 		return canvas;
 	}
@@ -103,7 +107,7 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 	private void installDiagramElementTools(DiagramRenderer pDiagramRenderer, ToggleGroup pToggleGroup)
 	{
 		final int oldFontSize = UserPreferences.instance().getInteger(IntegerPreference.fontSize);
-		UserPreferences.instance().setInteger(IntegerPreference.fontSize, DEFAULT_FONT_SIZE);
+		UserPreferences.instance().setInteger(IntegerPreference.fontSize, UserPreferences.DEFAULT_FONT_SIZE);
 		for( DiagramElement element : pDiagramRenderer.diagram().getPrototypes() )
 		{
 			SelectableToolButton button = new SelectableToolButton(pDiagramRenderer.createIcon(element),
@@ -242,10 +246,9 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 			ButtonBase button = (ButtonBase) item;
 			if( pShow )
 			{
-				if( item instanceof SelectableToolButton && 
-						((SelectableToolButton)item).getPrototype().isPresent())
+				if( item instanceof SelectableToolButton toolButton && 
+						toolButton.getPrototype().isPresent())
 				{
-					SelectableToolButton toolButton = (SelectableToolButton) item;
 					String text = Prototypes.instance().tooltip(toolButton.getPrototype().get(), false);
 					button.setText(text);
 				}
@@ -262,6 +265,26 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 			}
 		}
 	}
+	
+	/**
+	 * Recreates the tool bar button and pop-up menu icons 
+	 * when turning dark mode on or off.
+	 */
+	private void recreateButtonIcons()
+	{
+		List<Node> toolBarItems = getItems();
+		List<MenuItem> contextMenuItems = aPopupMenu.getItems();
+		for( int i = 0; i < toolBarItems.size(); i++ )
+		{
+			ButtonBase button = (ButtonBase) toolBarItems.get(i);
+			if( toolBarItems.get(i) instanceof SelectableToolButton toolButton && 
+					toolButton.getPrototype().isPresent() )
+			{
+				button.setGraphic(aDiagramRenderer.createIcon(toolButton.getPrototype().get()));
+				contextMenuItems.get(i).setGraphic(aDiagramRenderer.createIcon(toolButton.getPrototype().get()));
+			}
+		}
+	}
 
 	@Override
 	public void booleanPreferenceChanged(BooleanPreference pPreference)
@@ -269,6 +292,10 @@ public class DiagramTabToolBar extends ToolBar implements BooleanPreferenceChang
 		if( pPreference == BooleanPreference.showToolHints )
 		{
 			showButtonLabels(UserPreferences.instance().getBoolean(BooleanPreference.showToolHints));
+		}
+		if( pPreference == BooleanPreference.darkMode )
+		{
+			recreateButtonIcons();
 		}
 	}
 }

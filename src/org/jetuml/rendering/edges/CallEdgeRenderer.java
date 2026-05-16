@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -34,13 +34,14 @@ import org.jetuml.geom.Direction;
 import org.jetuml.geom.Line;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
+import org.jetuml.gui.ColorScheme;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
 import org.jetuml.rendering.LineStyle;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-import org.jetuml.rendering.ToolGraphics;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -50,16 +51,16 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.Shape;
 
 /**
- * A viewer to show call edges in a sequence diagrams. These are labeled
+ * A renderer to show call edges in a sequence diagrams. These are labeled
  * edges that are either straight or self-edges, in a solid line, and 
  * have either a V or half-V arrow head.
  */
 public final class CallEdgeRenderer extends AbstractEdgeRenderer
 {	
-	private static final StringRenderer CENTERED_STRING_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
-	private static final StringRenderer LEFT_JUSTIFIED_STRING_VIEWER = StringRenderer.get(Alignment.TOP_LEFT, TextDecoration.PADDED);
+	private static final StringRenderer CENTERED_STRING_VIEWER = new StringRenderer(Alignment.CENTER);
+	private static final StringRenderer TOP_CENTER_STRING_RENDERER = new StringRenderer(Alignment.LEFT);
 
-	private static final int SHIFT = 5;
+	private static final int LEFT_MARGIN = 5;
 	
 	/**
 	 * @param pParent The renderer for the parent diagram.
@@ -75,12 +76,12 @@ public final class CallEdgeRenderer extends AbstractEdgeRenderer
 		Point[] points = getPoints(pEdge);
 		Path path = new Path();
 		Point point = points[points.length - 1];
-		MoveTo moveTo = new MoveTo(point.getX(), point.getY());
+		MoveTo moveTo = new MoveTo(point.x(), point.y());
 		path.getElements().add(moveTo);
 		for(int i = points.length - 2; i >= 0; i--)
 		{
 			point = points[i];
-			LineTo lineTo = new LineTo(point.getX(), point.getY());
+			LineTo lineTo = new LineTo(point.x(), point.y());
 			path.getElements().add(lineTo);
 		}
 		return path;
@@ -122,49 +123,63 @@ public final class CallEdgeRenderer extends AbstractEdgeRenderer
 	}
 
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
 		Edge edge = (Edge) pElement;
-		ToolGraphics.strokeSharpPath(pGraphics, (Path) getShape(edge), LineStyle.SOLID);
+		pContext.strokePath((Path) getShape(edge), ColorScheme.get().stroke(), LineStyle.SOLID);
 		
 		Point[] points = getPoints(edge); // TODO already called by getShape(), find a way to avoid having to do 2 calls.
-		ArrowHeadRenderer.draw(pGraphics, getArrowHead((CallEdge)edge), points[points.length - 2], points[points.length - 1]);
-		String label = ((CallEdge)edge).getMiddleLabel();
-		if( label.length() > 0 )
-		{
-			drawLabel((CallEdge)edge, pGraphics, label);
-		}
+		ArrowHeadRenderer.draw(pContext, getArrowHead((CallEdge)edge), points[points.length - 2], points[points.length - 1]);
+		drawLabel((CallEdge)edge, pContext);
+	}
+	
+	/*
+	 * The label for the self edge is centered on the middle of the "knee" in the self edge,
+	 * with a LEFT_MARGIN space to the left.
+	 */
+	private Rectangle getSelfEdgeLabelBox(CallEdge pEdge)
+	{
+		Dimension dimensions = TOP_CENTER_STRING_RENDERER.getDimension(pEdge.getMiddleLabel());
+		Point[] points = getPoints(pEdge);
+		int x = points[1].x() + LEFT_MARGIN; // The extent of the self edge plus a margin
+		int y = (points[1].y() + points[2].y())/2 -dimensions.height() / 2; // Align box with center of edge
+		return new Rectangle(x, y, dimensions.width(), dimensions.height());		
+	}
+	
+	/*
+	 * The label for the normal edge is centered horizontally along the call edge
+	 * and placed a bit above so the descendants don't cross the edge.
+	 */
+	private Rectangle getNormalEdgeLabelBox(CallEdge pEdge)
+	{
+		Rectangle spanning = getConnectionPoints(pEdge).spanning();
+		int lineHeight = CENTERED_STRING_VIEWER.getDimension(pEdge.getMiddleLabel()).height();
+		return new Rectangle(spanning.x(), spanning.y() - lineHeight, spanning.width(), lineHeight);
+
 	}
 	
 	private Rectangle getStringBounds(CallEdge pEdge)
 	{
 		assert pEdge != null;
-		final String label = pEdge.getMiddleLabel();
 		if( pEdge.isSelfEdge() )
 		{
-			Dimension dimensions = LEFT_JUSTIFIED_STRING_VIEWER.getDimension(label);
-			Point[] points = getPoints(pEdge);
-			int heightDelta = (points[2].getY() -  points[1].getY() - dimensions.height())/2 + SHIFT;
-			return new Rectangle(points[1].getX(), points[1].getY() + heightDelta, dimensions.width() , dimensions.height());
+			return getSelfEdgeLabelBox(pEdge);
 		}
 		else
 		{
-			Dimension dimensions = CENTERED_STRING_VIEWER.getDimension(label);
-			Point center = getConnectionPoints(pEdge).spanning().getCenter();
-			return new Rectangle(center.getX() - dimensions.width()/2, 
-					center.getY() - dimensions.height() + SHIFT, dimensions.width(), dimensions.height());
+			return getNormalEdgeLabelBox(pEdge);
 		}
 	}
 
-	private void drawLabel(CallEdge pEdge, GraphicsContext pGraphics, String pLabel)
+	private void drawLabel(CallEdge pEdge, RenderingContext pContext)
 	{
 		if( pEdge.isSelfEdge() )
 		{
-			LEFT_JUSTIFIED_STRING_VIEWER.draw(pLabel, pGraphics, getStringBounds(pEdge));
+			TOP_CENTER_STRING_RENDERER.draw(pEdge.getMiddleLabel(), getSelfEdgeLabelBox(pEdge), pContext);
 		}
 		else
 		{
-			CENTERED_STRING_VIEWER.draw(pLabel, pGraphics, getStringBounds(pEdge));
+			CENTERED_STRING_VIEWER.draw(pEdge.getMiddleLabel(), getNormalEdgeLabelBox(pEdge), pContext);
 		}
 	}
 	
@@ -181,10 +196,10 @@ public final class CallEdgeRenderer extends AbstractEdgeRenderer
 		Rectangle end = parent().getBounds(endNode);
 		if( ((CallEdge)pEdge).isSelfEdge() )
 		{
-			Point p = new Point(start.getMaxX(), end.getY() - CallNode.CALL_YGAP / 2);
-			Point q = new Point(end.getMaxX(), end.getY());
-			Point s = new Point(q.getX() + end.getWidth(), q.getY());
-			Point r = new Point(s.getX(), p.getY());
+			Point p = new Point(start.maxX(), end.y() - CallNode.CALL_YGAP / 2);
+			Point q = new Point(end.maxX(), end.y());
+			Point s = new Point(q.x() + end.width(), q.y());
+			Point r = new Point(s.x(), p.y());
 
 			points.add(p);
 			points.add(r);
@@ -194,19 +209,19 @@ public final class CallEdgeRenderer extends AbstractEdgeRenderer
 		else     
 		{
 			Direction direction = Direction.WEST;
-			if( start.getX() > end.getX() )
+			if( start.x() > end.x() )
 			{
 				direction = Direction.EAST;
 			}
 			Point endPoint = parent().getConnectionPoints(endNode, direction);
          
-			if(start.getCenter().getX() < endPoint.getX())
+			if(start.center().x() < endPoint.x())
 			{
-				points.add(new Point(start.getMaxX(), endPoint.getY()));
+				points.add(new Point(start.maxX(), endPoint.y()));
 			}
 			else
 			{
-				points.add(new Point(start.getX(), endPoint.getY()));
+				points.add(new Point(start.x(), endPoint.y()));
 			}
 			points.add(endPoint);
 		}
@@ -223,8 +238,9 @@ public final class CallEdgeRenderer extends AbstractEdgeRenderer
 		canvas.getGraphicsContext2D().scale(scale, scale);
 		Path path = new Path();
 		path.getElements().addAll(new MoveTo(1, offset), new LineTo(BUTTON_SIZE*(1/scale)-1, offset));
-		ToolGraphics.strokeSharpPath(graphics, path, LineStyle.SOLID);
-		ArrowHeadRenderer.draw(graphics, ArrowHead.V, new Point(1, offset), new Point((int)(BUTTON_SIZE*(1/scale)-1), offset));
+		GraphicsRenderingContext context = new GraphicsRenderingContext(graphics);
+		context.strokePath(path, ColorScheme.get().stroke(), LineStyle.SOLID);
+		ArrowHeadRenderer.draw(context, ArrowHead.V, new Point(1, offset), new Point((int)(BUTTON_SIZE*(1/scale)-1), offset));
 		return canvas;
 	}
 }

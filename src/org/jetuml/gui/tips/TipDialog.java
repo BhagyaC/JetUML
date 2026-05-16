@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -33,27 +33,18 @@ import org.jetuml.gui.tips.TipLoader.Tip;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
@@ -72,12 +63,11 @@ public class TipDialog
 	private static final double TITLE_FONT_SIZE = 23;
 	private static final double TEXT_FONT_SIZE = 13.5;
 	private static final double TEXT_LINE_SPACING = 2;
+	private static final double TEXT_WIDTH = 570;
+	private static final Insets IMAGE_PADDING = new Insets(25, 0, 25, 0);
 	private static final double DEFAULT_NODE_SPACING = 10;
-	private static final String NEXT_TIP_BUTTON_STYLE = "next-tip-button";
-	private static final String BUTTON_STYLE = "tip-menu-button";
 	
 	private Stage aStage;
-	private Stage aOwner;
 	private Tip aCurrentTip;
 	private ViewedTips aViewedTips;
 	private final ScrollPane aTipDisplay;
@@ -86,18 +76,18 @@ public class TipDialog
 	/**
 	 * Constructor for a TipDialog.
 	 * 
-	 * @param pOwner The stage of the window that generates the tip dialog.
+	 * @param pDialogStage The stage of the window that generates the tip dialog.
 	 *        pOwner can be null to get a TipDialog with no owner.
 	 */
-	public TipDialog(Stage pOwner)
+	public TipDialog(Stage pDialogStage)
 	{
+		aStage = pDialogStage;
 		aTipDisplay = new ScrollPane();
 		aViewedTips = new ViewedTips(getUserPrefNextTipId());
 		aShowTipsOnStartupCheckBox = new CheckBox(RESOURCES.getString("dialog.tips.checkbox.text"));
 		aShowTipsOnStartupCheckBox.setSelected(UserPreferences.instance().getBoolean(UserPreferences.BooleanPreference.showTips));
 		aShowTipsOnStartupCheckBox.setOnAction(e -> UserPreferences.instance().setBoolean(UserPreferences.BooleanPreference.showTips, 
 				aShowTipsOnStartupCheckBox.isSelected()));
-		aOwner = pOwner;
 	}
 	
 	/**
@@ -106,28 +96,19 @@ public class TipDialog
 	 */
 	public void show() 
 	{
-		aStage = new Stage();
-		prepareStage(aOwner);
+		prepareStage();
 		aStage.showAndWait();
 	}
 	
-	private void prepareStage(Stage pOwner) 
+	private void prepareStage() 
 	{
-		aStage.setResizable(true);
-		aStage.setMinWidth(WINDOW_MIN_WIDTH);
-		aStage.setWidth(WINDOW_PREF_WIDTH);
-		aStage.setMinHeight(WINDOW_MIN_HEIGHT);
-		aStage.setHeight(WINDOW_PREF_HEIGHT);
-		aStage.initModality(Modality.WINDOW_MODAL);
-		aStage.initOwner(pOwner);
 		aStage.setTitle(RESOURCES.getString("dialog.tips.title"));
 		aStage.getIcons().add(new Image(RESOURCES.getString("application.icon")));
-		aStage.setScene(createScene());
-		aStage.getScene().getStylesheets().add(getClass().getResource("TipDialog.css").toExternalForm());
+		aStage.getScene().setRoot(createRoot());
 		aTipDisplay.requestFocus();
 	}
 	
-	private Scene createScene() 
+	private Pane createRoot() 
 	{
 		BorderPane layout = new BorderPane();
 
@@ -145,22 +126,12 @@ public class TipDialog
 		setUserPrefNextTip(aViewedTips.getNewNextTipOfTheDayId());
 		setupNewTip(tip);
 		
-		aStage.requestFocus();
-		aStage.addEventHandler(KeyEvent.KEY_PRESSED, pEvent -> 
-		{
-			if (pEvent.getCode() == KeyCode.ESCAPE) 
-			{
-				aStage.close();
-			}
-		});
-		aStage.setOnCloseRequest(pEvent -> 
-		{
-				aStage.close();
-		});
+		layout.setMinWidth(WINDOW_MIN_WIDTH);
+		layout.setMaxWidth(WINDOW_PREF_WIDTH);
+		layout.setMinHeight(WINDOW_MIN_HEIGHT);
+		layout.setMaxHeight(WINDOW_PREF_HEIGHT);
 		
-		Scene tipDialogScene = new Scene(layout, WINDOW_PREF_WIDTH, WINDOW_PREF_HEIGHT);
-		
-		return tipDialogScene;
+		return layout;
 	}
 
 	private HBox createTipMenu()
@@ -179,24 +150,17 @@ public class TipDialog
 	{
 		HBox tipMenu = new HBox();
 		tipMenu.setPadding(new Insets(PADDING));
-		tipMenu.setStyle("-fx-background-color: gainsboro;");
-		
-		BorderStroke bs = new BorderStroke(Color.DARKGRAY, BorderStrokeStyle.SOLID,
-										   CornerRadii.EMPTY, BorderWidths.DEFAULT);
-		tipMenu.setBorder(new Border(bs));
+		tipMenu.getStyleClass().add("tip-menu");
 		return tipMenu;
 	}
 	
 	private HBox createTipMenuButtons()
 	{
 		Button nextTipButton = new Button(RESOURCES.getString("dialog.tips.button.next.text"));
-		nextTipButton.getStyleClass().add(NEXT_TIP_BUTTON_STYLE);
-		
+
 		Button previousTipButton = new Button(RESOURCES.getString("dialog.tips.button.previous.text"));
-		previousTipButton.getStyleClass().add(BUTTON_STYLE);
 		
 		Button closeButton = new Button(RESOURCES.getString("dialog.tips.button.close.text"));
-		closeButton.getStyleClass().add(BUTTON_STYLE);
 		
 		nextTipButton.setOnAction(e -> 
 		{ 
@@ -243,7 +207,7 @@ public class TipDialog
 	/**
 	 * @pre pTip != null
 	 */
-	private VBox getTipAsVBox(Tip pTip) 
+	private static VBox getTipAsVBox(Tip pTip) 
 	{
 		assert pTip != null;
 		
@@ -253,16 +217,14 @@ public class TipDialog
 		
 		List<TipElement> tipElements = pTip.getElements();
 		
-		Node titleNode = getTipTitleAsTextNode(pTip);
+		Node titleNode = getTipTitleAsLabel(pTip);
 		tipVBox.getChildren().add(titleNode);
 		
 		for(TipElement tipElement : tipElements)
 		{
-			Node node = this.getTipElementAsNode(tipElement, tipVBox);
+			Node node = getTipElementAsNode(tipElement, tipVBox);
 			tipVBox.getChildren().add(node);
 		}
-		
-		tipVBox.setAlignment(Pos.CENTER);
 		
 		return tipVBox;
 	}
@@ -272,12 +234,12 @@ public class TipDialog
 	 * @return Formatted Node containing the tip's title
 	 * @pre pTip!= null
 	 */
-	private static Text getTipTitleAsTextNode(Tip pTip)
+	private static Label getTipTitleAsLabel(Tip pTip)
 	{
 		assert pTip != null;
 		
 		String title = pTip.getTitle();
-		Text titleNode = new Text(title);
+		Label titleNode = new Label(title);
 		Font titleFont = new Font(TITLE_FONT_SIZE);
 		titleNode.setFont(titleFont);
 		return titleNode;
@@ -295,7 +257,7 @@ public class TipDialog
 	 * @pre pTipElement != null;
 	 * @pre pTipElement.getMedia().equals(Media.TEXT) || pTipElement.getMedia().equals(Media.IMAGE)
 	 */
-	private Node getTipElementAsNode(TipElement pTipElement, VBox pParent)
+	private static Node getTipElementAsNode(TipElement pTipElement, VBox pParent)
 	{
 		assert pTipElement != null;
 		assert pTipElement.getMedia().equals(Media.TEXT) || pTipElement.getMedia().equals(Media.IMAGE);
@@ -303,11 +265,14 @@ public class TipDialog
 		Media media = pTipElement.getMedia();
 		if(media.equals(Media.TEXT))
 		{
-			return this.getTextTipElementAsTextNode(pTipElement);
+			return getTextTipElementAsLabel(pTipElement);
 		}
 		else // media.equals(Media.IMAGE) by @pre
 		{
-			return getImageTipElementAsImageView(pTipElement);
+			HBox imageContainer = new HBox(getImageTipElementAsImageView(pTipElement));
+			imageContainer.setAlignment(Pos.CENTER);
+			VBox.setMargin(imageContainer, IMAGE_PADDING);
+			return imageContainer;
 		}
 	}
 	
@@ -316,16 +281,15 @@ public class TipDialog
 	 * @pre pTipElement != null
 	 * @pre pTipElement.getMedia().equals(Media.TEXT);
 	 */
-	private Text getTextTipElementAsTextNode(TipElement pTipElement) 
+	private static Label getTextTipElementAsLabel(TipElement pTipElement) 
 	{
 		assert pTipElement != null;
 		assert pTipElement.getMedia().equals(Media.TEXT);
 		
 		String text = pTipElement.getContent();
-		Text textNode = new Text(text);
-		textNode.wrappingWidthProperty().bind(aTipDisplay.widthProperty().subtract(2 * PADDING + 4 * DEFAULT_NODE_SPACING));
-		// two times the padding because of the VBox padding, and a bit extra to make up for
-		// other default spacing added between nodes
+		Label textNode = new Label(text);
+		textNode.setWrapText(true);
+		textNode.setPrefWidth(TEXT_WIDTH);
 		
 		Font textFont = new Font(TEXT_FONT_SIZE);
 		textNode.setFont(textFont);

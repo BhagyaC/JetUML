@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -42,7 +42,7 @@ public class ViewedTips
 		
 		aCurrentTipId = pFirstTipOfTheDayId;
 		
-		if (pFirstTipOfTheDayId == NUM_TIPS)
+		if(pFirstTipOfTheDayId == NUM_TIPS)
 		{
 			aNewNextTipOfTheDayId = 1;
 		}
@@ -86,7 +86,7 @@ public class ViewedTips
 	
 	private void updateCurrentTipIdToNextTipId()
 	{
-		if (aCurrentTipId == NUM_TIPS)
+		if(aCurrentTipId == NUM_TIPS)
 		{
 			aCurrentTipId = 1;
 		}
@@ -98,7 +98,7 @@ public class ViewedTips
 	
 	private void updateCurrentTipIdToPreviousTipId()
 	{
-		if (aCurrentTipId == 1)
+		if(aCurrentTipId == 1)
 		{
 			aCurrentTipId = NUM_TIPS;
 		}
@@ -114,9 +114,9 @@ public class ViewedTips
 	 */
 	private void updateNextTipOfTheDayId()
 	{
-		if (aCurrentTipId == aNewNextTipOfTheDayId)
+		if(aCurrentTipId == aNewNextTipOfTheDayId)
 		{
-			if (aNewNextTipOfTheDayId == NUM_TIPS)
+			if(aNewNextTipOfTheDayId == NUM_TIPS)
 			{
 				aNewNextTipOfTheDayId = 1;
 			}

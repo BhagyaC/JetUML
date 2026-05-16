@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -24,8 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class TestRectangle
@@ -36,23 +34,16 @@ public class TestRectangle
 	@Test
 	void testToString()
 	{
-		assertEquals("[x=0, y=0, w=60, h=40]", RECTANGLE_1.toString());
+		assertEquals("Rectangle[x=0, y=0, width=60, height=40]", RECTANGLE_1.toString());
 	}
 	
 	@Test
 	void testMaxXY()
 	{
-		assertEquals(60, RECTANGLE_1.getMaxX());
-		assertEquals(40, RECTANGLE_1.getMaxY());
-		assertEquals(101, RECTANGLE_2.getMaxX());
-		assertEquals(21, RECTANGLE_2.getMaxY());
-	}
-	
-	@Test
-	void testHashCode()
-	{
-		assertEquals(2172821, RECTANGLE_1.hashCode());
-		assertEquals(957393, RECTANGLE_2.hashCode());
+		assertEquals(60, RECTANGLE_1.maxX());
+		assertEquals(40, RECTANGLE_1.maxY());
+		assertEquals(101, RECTANGLE_2.maxX());
+		assertEquals(21, RECTANGLE_2.maxY());
 	}
 	
 	@Test
@@ -84,15 +75,15 @@ public class TestRectangle
 	@Test
 	void testGetCenter()
 	{
-		Point center = RECTANGLE_1.getCenter();
-		assertEquals(30, center.getX());
-		assertEquals(20, center.getY());
-		center = RECTANGLE_1.translated(10, 10).getCenter();
-		assertEquals(40, center.getX());
-		assertEquals(30, center.getY());
-		center = RECTANGLE_2.getCenter();
-		assertEquals(100, center.getX());
-		assertEquals(20, center.getY());
+		Point center = RECTANGLE_1.center();
+		assertEquals(30, center.x());
+		assertEquals(20, center.y());
+		center = RECTANGLE_1.translated(10, 10).center();
+		assertEquals(40, center.x());
+		assertEquals(30, center.y());
+		center = RECTANGLE_2.center();
+		assertEquals(100, center.x());
+		assertEquals(20, center.y());
 	}
 	
 	@Test
@@ -117,62 +108,31 @@ public class TestRectangle
 		assertEquals( new Rectangle(0,0,20,20), rectangle);
 	}
 	
-	@Nested
-	@DisplayName("Test method getSide(Side)")
-	class TestGetSide
+	@Test
+	void testCenterSlice_Same_ZeroY()
 	{
-		@Test
-		@DisplayName("All sides of an empty rectangle at origin")
-		void testWithEmptyRectangleAtOrigin()
-		{
-			Rectangle rectangle = new Rectangle(0,0,0,0);
-			assertEquals(new Line(0,0,0,0), rectangle.getSide(Side.TOP));
-			assertEquals(new Line(0,0,0,0), rectangle.getSide(Side.BOTTOM));
-			assertEquals(new Line(0,0,0,0), rectangle.getSide(Side.RIGHT));
-			assertEquals(new Line(0,0,0,0), rectangle.getSide(Side.LEFT));
-		}
-		
-		@Test
-		@DisplayName("All sides of an empty rectangle not at origin")
-		void testWithEmptyRectangleNotAtOrigin()
-		{
-			Rectangle rectangle = new Rectangle(1,2,0,0);
-			assertEquals(new Line(1,2,1,2), rectangle.getSide(Side.TOP));
-			assertEquals(new Line(1,2,1,2), rectangle.getSide(Side.BOTTOM));
-			assertEquals(new Line(1,2,1,2), rectangle.getSide(Side.RIGHT));
-			assertEquals(new Line(1,2,1,2), rectangle.getSide(Side.LEFT));
-		}
-		
-		@Test
-		@DisplayName("For the top side")
-		void testTop()
-		{
-			Rectangle rectangle = new Rectangle(10,10,60,40);
-			assertEquals(new Line(10,10,70,10), rectangle.getSide(Side.TOP));
-		}
-		
-		@Test
-		@DisplayName("For the bottom side")
-		void testBottom()
-		{
-			Rectangle rectangle = new Rectangle(10,10,60,40);
-			assertEquals(new Line(10,50,70,50), rectangle.getSide(Side.BOTTOM));
-		}
-		
-		@Test
-		@DisplayName("For the right side")
-		void testRight()
-		{
-			Rectangle rectangle = new Rectangle(10,10,60,40);
-			assertEquals(new Line(70,10,70,50), rectangle.getSide(Side.RIGHT));
-		}
-		
-		@Test
-		@DisplayName("For the left side")
-		void testLeft()
-		{
-			Rectangle rectangle = new Rectangle(10,10,60,40);
-			assertEquals(new Line(10,10,10,50), rectangle.getSide(Side.LEFT));
-		}
+		Rectangle original = new Rectangle(0,0,100,60);
+		Rectangle expected = new Rectangle(0,0,100,60);
+		Rectangle actual = original.centerSlice(60);
+		assertEquals(expected, actual);
 	}
+	
+	@Test
+	void testCenterSlice_Same_NonZeroY()
+	{
+		Rectangle original = new Rectangle(0,20,100,60);
+		Rectangle expected = new Rectangle(0,20,100,60);
+		Rectangle actual = original.centerSlice(60);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	void testCenterSlice_Smaller()
+	{
+		Rectangle original = new Rectangle(0,20,100,60);
+		Rectangle expected = new Rectangle(0,35,100,30);
+		Rectangle actual = original.centerSlice(30);
+		assertEquals(expected, actual);
+	}
+
 }

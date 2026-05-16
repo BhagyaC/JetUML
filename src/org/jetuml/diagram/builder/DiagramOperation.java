@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -20,11 +20,14 @@
  *******************************************************************************/
 package org.jetuml.diagram.builder;
 
+import org.jetuml.annotations.Command;
+
 /**
  * Represents an operation to change a diagram, that
  * can be undone. Operations are only required to be valid
  * for a single execution and a single undoing in a row.
  */
+@Command
 public interface DiagramOperation
 {
 	/**

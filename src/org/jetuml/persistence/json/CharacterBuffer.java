@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  * 
  * See: https://github.com/prmr/JetUML
  *
@@ -97,7 +97,7 @@ class CharacterBuffer
 		while (hasMore())
 		{
 			char character = next();
-			if (!isWhitespace(character))
+			if(!isWhitespace(character))
 			{
 				backUp();
 				return;
@@ -131,11 +131,11 @@ class CharacterBuffer
 	@Override
 	public String toString()
 	{
-		if (aPosition >= 0 && aPosition < aCharacters.length())
+		if(aPosition >= 0 && aPosition < aCharacters.length())
 		{
 			return String.format("At position %d [%s]", aPosition, aCharacters.charAt(aPosition));
 		}
-		else if (aPosition < 0)
+		else if(aPosition < 0)
 		{
 			return "Positioned at the beginning";
 		}

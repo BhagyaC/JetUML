@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -54,9 +54,9 @@ public abstract class AbstractTestClassDiagramLayout extends AbstractTestDiagram
 		final int packageNodePadding = getStaticIntFieldValue(AbstractPackageNodeRenderer.class, "PADDING");
 		Rectangle boundsInnerNode = aRenderer.getBounds(nodeByName(pInnerNodeName));
 		Rectangle boundsPackageNode = aRenderer.getBounds(nodeByName(pPackageName));
-		assertEquals(boundsInnerNode.getX() - packageNodePadding, boundsPackageNode.getX());
-		assertEquals(boundsInnerNode.getMaxX() + packageNodePadding, boundsPackageNode.getMaxX());
-		assertEquals(boundsInnerNode.getMaxY() + packageNodePadding, boundsPackageNode.getMaxY());
-		assertTrue(boundsPackageNode.getY() < boundsInnerNode.getY());
+		assertEquals(boundsInnerNode.x() - packageNodePadding, boundsPackageNode.x());
+		assertEquals(boundsInnerNode.maxX() + packageNodePadding, boundsPackageNode.maxX());
+		assertEquals(boundsInnerNode.maxY() + packageNodePadding, boundsPackageNode.maxY());
+		assertTrue(boundsPackageNode.y() < boundsInnerNode.y());
 	}
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -27,21 +27,19 @@ import org.jetuml.diagram.Edge;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Point;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
 import org.jetuml.rendering.ArrowHead;
 import org.jetuml.rendering.DiagramRenderer;
 import org.jetuml.rendering.LineStyle;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
-
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * Can draw a straight edge with a label than can be obtained dynamically. 
  */
 public class LabeledStraightEdgeRenderer extends StraightEdgeRenderer
 {	
-	private static final StringRenderer STRING_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	private static final StringRenderer LABEL_RENDERER = new StringRenderer(Alignment.CENTER);
 	
 	private final Function<Edge, String> aLabelExtractor;
 	
@@ -60,24 +58,25 @@ public class LabeledStraightEdgeRenderer extends StraightEdgeRenderer
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
-		super.draw(pElement, pGraphics);
+		super.draw(pElement, pContext);
 		Edge edge = (Edge) pElement;
 		String label = wrapLabel(edge);
-		int labelHeight = STRING_VIEWER.getDimension(label).height();
+		
 		if( label.length() > 0 )
 		{
-			STRING_VIEWER.draw(label, pGraphics, getConnectionPoints(edge).spanning().translated(0, -labelHeight/2));
+			LABEL_RENDERER.draw(label, getConnectionPoints(edge).spanning()
+					.translated(0, -LABEL_RENDERER.getDimension(label).height()), pContext);
 		}
 	}
 	
 	private String wrapLabel(Edge pEdge) 
 	{
-		int distanceInX = Math.abs(parent().getBounds(pEdge.start()).getCenter().getX() -
-				parent().getBounds(pEdge.end()).getCenter().getX());
-		int distanceInY = Math.abs(parent().getBounds(pEdge.start()).getCenter().getY() -
-				parent().getBounds(pEdge.end()).getCenter().getY());
+		int distanceInX = Math.abs(parent().getBounds(pEdge.start()).center().x() -
+				parent().getBounds(pEdge.end()).center().x());
+		int distanceInY = Math.abs(parent().getBounds(pEdge.start()).center().y() -
+				parent().getBounds(pEdge.end()).center().y());
 		return super.wrapLabel(aLabelExtractor.apply(pEdge), distanceInX, distanceInY);
 	}
 
@@ -85,10 +84,10 @@ public class LabeledStraightEdgeRenderer extends StraightEdgeRenderer
 	{
 		String label = wrapLabel(pEdge);
 		assert label != null && label.length() > 0;
-		Dimension dimensions = STRING_VIEWER.getDimension(label);
-		Point center = getConnectionPoints(pEdge).spanning().getCenter();
-		return new Rectangle(center.getX()-dimensions.width()/2, center.getY() - dimensions.height()/2, dimensions.width(), 
-				dimensions.height());
+		Point center = getConnectionPoints(pEdge).spanning().center();
+		Dimension textDimension = LABEL_RENDERER.getDimension(label);
+		return new Rectangle(center.x() - textDimension.width()/2, center.y() - textDimension.height()/2, textDimension.width(), 
+				textDimension.height());
 	}
 	
 	@Override

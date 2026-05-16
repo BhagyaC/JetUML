@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2020, 2021 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  *     
  * See: https://github.com/prmr/JetUML
  *
@@ -28,20 +28,20 @@ import org.jetuml.diagram.nodes.AbstractPackageNode;
 import org.jetuml.diagram.nodes.PackageDescriptionNode;
 import org.jetuml.geom.Dimension;
 import org.jetuml.geom.Rectangle;
+import org.jetuml.geom.Alignment;
 import org.jetuml.rendering.DiagramRenderer;
+import org.jetuml.rendering.GraphicsRenderingContext;
+import org.jetuml.rendering.RenderingContext;
 import org.jetuml.rendering.StringRenderer;
-import org.jetuml.rendering.StringRenderer.Alignment;
-import org.jetuml.rendering.StringRenderer.TextDecoration;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 
 /**
  * An object to render a package in a class diagram.
  */
 public final class PackageDescriptionNodeRenderer extends AbstractPackageNodeRenderer
 {
-	private static final StringRenderer CONTENTS_VIEWER = StringRenderer.get(Alignment.CENTER_CENTER, TextDecoration.PADDED);
+	private static final StringRenderer CONTENT_RENDERER = new StringRenderer(Alignment.CENTER);
 	
 	/**
 	 * @param pParent Renderer of the parent diagram.
@@ -52,25 +52,27 @@ public final class PackageDescriptionNodeRenderer extends AbstractPackageNodeRen
 	}
 	
 	@Override
-	public void draw(DiagramElement pElement, GraphicsContext pGraphics)
+	public void draw(DiagramElement pElement, RenderingContext pContext)
 	{
-		super.draw(pElement, pGraphics);
+		super.draw(pElement, pContext);
 		Rectangle bottomBounds = getBottomBounds((AbstractPackageNode)pElement);
-		CONTENTS_VIEWER.draw(((PackageDescriptionNode)pElement).getContents(), pGraphics, new Rectangle(bottomBounds.getX() + NAME_GAP, 
-				bottomBounds.getY(), bottomBounds.getWidth(), bottomBounds.getHeight()));
+		String content = ((PackageDescriptionNode)pElement).getContents();
+		CONTENT_RENDERER.draw(((PackageDescriptionNode)pElement).getContents(), 
+				bottomBounds.centerSlice(CONTENT_RENDERER.getDimension(content).height()), 
+				pContext);
 	}
 	
 	@Override
 	protected Rectangle getBottomBounds(AbstractPackageNode pNode)
 	{
-		Dimension contentsBounds = CONTENTS_VIEWER.getDimension(((PackageDescriptionNode)pNode).getContents());
+		Dimension contentsBounds = CONTENT_RENDERER.getDimension(((PackageDescriptionNode)pNode).getContents());
 		int width = max(contentsBounds.width() + 2 * PADDING, DEFAULT_WIDTH);
 		int height = max(contentsBounds.height() + 2 * PADDING, DEFAULT_BOTTOM_HEIGHT);
 		
 		Dimension topDimension = getTopDimension(pNode);
 		width = max( width, topDimension.width()+ (DEFAULT_WIDTH - DEFAULT_TOP_WIDTH));
 		
-		return new Rectangle(pNode.position().getX(), pNode.position().getY() + topDimension.height(), 
+		return new Rectangle(pNode.position().x(), pNode.position().y() + topDimension.height(), 
 				width, height);
 	}
 	
@@ -82,7 +84,9 @@ public final class PackageDescriptionNodeRenderer extends AbstractPackageNodeRen
 	{
 		assert pElement instanceof AbstractPackageNode;
 		Canvas icon = super.createIcon(pDiagramType, pElement);
-		CONTENTS_VIEWER.draw("description", icon.getGraphicsContext2D(), getBottomBounds((AbstractPackageNode)pElement));
+		CONTENT_RENDERER.draw("description", 
+				getBottomBounds((AbstractPackageNode)pElement).centerSlice(CONTENT_RENDERER.lineHeight()), 
+				new GraphicsRenderingContext(icon.getGraphicsContext2D()));
 		return icon;
 	}
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * JetUML - A desktop application for fast UML diagramming.
  *
- * Copyright (C) 2022 by McGill University.
+ * Copyright (C) 2025 by McGill University.
  * 
  * See: https://github.com/prmr/JetUML
  *
@@ -32,7 +32,7 @@ final class JsonIntegerParser implements JsonValueParser
 	@Override
 	public boolean isApplicable(ParsableCharacterBuffer pInput)
 	{
-		if (!pInput.hasMore() )
+		if(!pInput.hasMore() )
     	{
     		return false;
     	}
@@ -74,7 +74,7 @@ final class JsonIntegerParser implements JsonValueParser
     	return parseInt(numberAsString.toString(), pInput.position());
 	}
 	
-    private int parseInt(String pNumber, int pPosition)
+    private static int parseInt(String pNumber, int pPosition)
     {
     	try
     	{
